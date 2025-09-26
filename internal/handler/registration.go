@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
+
 	"github.com/google/uuid"
-	"net/http"
 )
 
 type UserRegisterInput struct {

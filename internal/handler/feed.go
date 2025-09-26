@@ -1,10 +1,11 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
-	"net/http"
 )
 
 // This is a test endpoint just to give user a guest cookie
