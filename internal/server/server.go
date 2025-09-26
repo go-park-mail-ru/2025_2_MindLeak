@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/router"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "URL:", r.URL.String())
-}
-
 func StartServer() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", handler)
+	sessions := repository.NewInMemorySession()
+	users := repository.NewInMemoryUser()
+
+	mux := router.NewRouter(sessions, users)
 
 	server := http.Server{
 		Addr:         ":8090",

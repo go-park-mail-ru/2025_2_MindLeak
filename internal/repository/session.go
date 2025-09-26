@@ -2,8 +2,9 @@ package repository
 
 import (
 	"errors"
-	"github.com/google/uuid"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type SessionRepository interface {
@@ -21,6 +22,12 @@ type Session struct {
 type InMemorySession struct {
 	Sessions map[uuid.UUID]uuid.UUID
 	mu       sync.RWMutex
+}
+
+func NewInMemorySession() *InMemorySession {
+	return &InMemorySession{
+		Sessions: make(map[uuid.UUID]uuid.UUID),
+	}
 }
 
 func (mem *InMemorySession) CreateSession() (*Session, error) {

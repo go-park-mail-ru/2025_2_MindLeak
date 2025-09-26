@@ -2,8 +2,9 @@ package repository
 
 import (
 	"errors"
-	"github.com/google/uuid"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type UserRepository interface {
@@ -23,6 +24,12 @@ type User struct {
 type InMemoryUser struct {
 	Users []*User
 	mu    sync.RWMutex
+}
+
+func NewInMemoryUser() *InMemoryUser {
+	return &InMemoryUser{
+		Users: make([]*User, 0),
+	}
 }
 
 func (mem *InMemoryUser) CreateUser(email string, password string) (*User, error) {
