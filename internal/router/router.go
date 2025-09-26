@@ -10,6 +10,11 @@ import (
 func NewRouter(sessions *repository.InMemorySession, users *repository.InMemoryUser) *http.ServeMux {
 	mux := http.NewServeMux()
 
+	//This is a test endpoint just to give user a guest cookie
+	mux.HandleFunc("/feed", func(w http.ResponseWriter, r *http.Request) {
+		handler.FeedHandler(w, sessions)
+	})
+
 	mux.HandleFunc("/registration", func(w http.ResponseWriter, r *http.Request) {
 		handler.RegistrationHandler(w, r, sessions, users)
 	})
