@@ -10,16 +10,13 @@ import (
 func NewRouter(sessions *repository.InMemorySession, users *repository.InMemoryUser) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	// mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request){
-	// 	handler.FeedHandler(w, r,)
-	// })
 	mux.HandleFunc("/registration", func(w http.ResponseWriter, r *http.Request) {
 		handler.RegistrationHandler(w, r, sessions, users)
 	})
-	mux.HandleFunc("/registration", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		handler.LoginHandler(w, r, sessions, users)
 	})
-	mux.HandleFunc("/registration", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
 		handler.LogoutHandler(w, r, sessions)
 	})
 

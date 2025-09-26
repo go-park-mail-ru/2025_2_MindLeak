@@ -22,6 +22,6 @@ func StartServer() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	fmt.Println("starting server at :8080")
+	fmt.Println("starting server at :8090")
 	server.ListenAndServe()
 }
