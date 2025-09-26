@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 	"github.com/google/uuid"
+	"sync"
 )
 
 type SessionRepository interface {
@@ -17,11 +18,15 @@ type Session struct {
 	UserId    uuid.UUID
 }
 
-type InMemory struct {
+type InMemorySession struct {
 	Sessions map[uuid.UUID]uuid.UUID
+	mu       sync.RWMutex
 }
 
-func (mem *InMemory) CreateSession() (*Session, error) {
+func (mem *InMemorySession) CreateSession() (*Session, error) {
+	mem.mu.Lock()
+	defer mem.mu.Unlock()
+
 	SessionId := uuid.New()
 	Session := &Session{
 		UserId:    uuid.UUID{},
@@ -31,7 +36,10 @@ func (mem *InMemory) CreateSession() (*Session, error) {
 	return Session, nil
 }
 
-func (mem *InMemory) GetSessionById(sessionId uuid.UUID) (*Session, error) {
+func (mem *InMemorySession) GetSessionById(sessionId uuid.UUID) (*Session, error) {
+	mem.mu.RLock()
+	defer mem.mu.RUnlock()
+
 	if UserId, exists := mem.Sessions[sessionId]; exists {
 		session := &Session{
 			SessionId: sessionId,
@@ -43,7 +51,10 @@ func (mem *InMemory) GetSessionById(sessionId uuid.UUID) (*Session, error) {
 	}
 }
 
-func (mem *InMemory) SetSessionUserId(sessionId uuid.UUID, userId uuid.UUID) (*Session, error) {
+func (mem *InMemorySession) SetSessionUserId(sessionId uuid.UUID, userId uuid.UUID) (*Session, error) {
+	mem.mu.Lock()
+	defer mem.mu.Unlock()
+
 	if _, exists := mem.Sessions[sessionId]; exists {
 		mem.Sessions[sessionId] = userId
 		session := &Session{
@@ -56,7 +67,10 @@ func (mem *InMemory) SetSessionUserId(sessionId uuid.UUID, userId uuid.UUID) (*S
 	}
 }
 
-func (mem *InMemory) DeleteSessionById(sessionId uuid.UUID) (bool, error) {
+func (mem *InMemorySession) DeleteSessionById(sessionId uuid.UUID) (bool, error) {
+	mem.mu.Lock()
+	defer mem.mu.Unlock()
+
 	if _, exists := mem.Sessions[sessionId]; exists {
 		delete(mem.Sessions, sessionId)
 		return true, nil

@@ -1,1 +1,39 @@
 package handler
+
+import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
+	"github.com/google/uuid"
+	"net/http"
+)
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession) {
+	cookie, err := cookies.GetCookie(r)
+	if err != nil {
+		json.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err = cookies.DeleteCookie(w, r)
+	if err != nil {
+		json.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	sessionId, err := uuid.Parse(cookie.Value)
+	if err != nil {
+		json.WriteError(w, http.StatusBadRequest, err.Error())
+	}
+
+	flag, err := sessions.DeleteSessionById(sessionId)
+	if flag {
+		json.Write(w, http.StatusOK, map[string]string{
+			"message": "logged out",
+		})
+	} else {
+		json.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+}
