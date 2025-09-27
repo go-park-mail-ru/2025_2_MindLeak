@@ -23,6 +23,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	if newUserData.Email == "" || newUserData.Password == "" {
+		json.WriteError(w, http.StatusBadRequest, "Email or Password is required")
+	}
+
 	Email := newUserData.Email
 	Password := newUserData.Password
 
