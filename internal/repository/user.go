@@ -16,9 +16,10 @@ type UserRepository interface {
 }
 
 type User struct {
-	Id       uuid.UUID
-	Email    string
-	Password string `json:"-"`
+	Id       uuid.UUID `json:"-"`
+	Email    string    `json:"email"`
+	Password string    `json:"-"`
+	Name     string    `json:"name"`
 }
 
 type InMemoryUser struct {
@@ -32,7 +33,7 @@ func NewInMemoryUser() *InMemoryUser {
 	}
 }
 
-func (mem *InMemoryUser) CreateUser(email string, password string) (*User, error) {
+func (mem *InMemoryUser) CreateUser(email string, password string, name string) (*User, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -45,6 +46,7 @@ func (mem *InMemoryUser) CreateUser(email string, password string) (*User, error
 		Id:       uuid.New(),
 		Email:    email,
 		Password: password,
+		Name:     name,
 	}
 	mem.Users = append(mem.Users, user)
 	return user, nil

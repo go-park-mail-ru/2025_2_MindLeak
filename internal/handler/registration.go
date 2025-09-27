@@ -11,8 +11,9 @@ import (
 )
 
 type UserRegisterInput struct {
-	Email    string
-	Password string
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Name     string `json:"name"`
 }
 
 func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession,
@@ -25,7 +26,7 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 		return
 	}
 
-	User, err := users.CreateUser(newUserData.Email, newUserData.Password) //Add new user in storage
+	User, err := users.CreateUser(newUserData.Email, newUserData.Password, newUserData.Name) //Add new user in storage
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
