@@ -12,5 +12,5 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/backend .
 
-EXPOSE 8080
+EXPOSE 8090
 CMD ["./backend"]
