@@ -12,8 +12,9 @@ import (
 func StartServer() {
 	sessions := repository.NewInMemorySession()
 	users := repository.NewInMemoryUser()
+	articles := repository.NewInMemoryArticle()
 
-	mux := router.NewRouter(sessions, users)
+	mux := router.NewRouter(sessions, users, articles)
 
 	server := http.Server{
 		Addr:         ":8090",
