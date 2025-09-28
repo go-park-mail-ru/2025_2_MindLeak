@@ -23,6 +23,9 @@ func NewRouter(sessions *repository.InMemorySession, users *repository.InMemoryU
 	mux.HandleFunc("/logout", middleware.CORSMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		handler.LogoutHandler(w, r, sessions)
 	}))
+	mux.HandleFunc("/me", middleware.CORSMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		handler.MeHandler(w, r, sessions, users)
+	}))
 
 	return mux
 }
