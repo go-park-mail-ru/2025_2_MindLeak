@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
@@ -30,6 +31,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 
 	Email := newUserData.Email
 	Password := newUserData.Password
+	fmt.Println(newUserData.Email, newUserData.Password)
 
 	User, err := users.GetUserByEmail(Email)
 	if err != nil {
