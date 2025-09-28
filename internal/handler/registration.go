@@ -38,12 +38,9 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 		return
 	}
 
-	cookie, err := cookies.GetCookie(r) //Search guest cookie
-	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	sessionId, err := uuid.Parse(cookie.Value)             //Search sessionId
+	sessionId := uuid.New()
+	cookies.SetCookie(w, sessionId)
+
 	_, err = sessions.SetSessionUserId(sessionId, User.Id) //Pair UserId and SessionId
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
