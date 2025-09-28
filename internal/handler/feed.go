@@ -10,6 +10,16 @@ import (
 )
 
 func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession, articles *repository.InMemoryArticle) {
+	cookie, err := cookies.GetCookie(r)
+	if err == nil {
+		if sessionID, parseErr := uuid.Parse(cookie.Value); parseErr == nil {
+			if _, sessErr := sessions.GetSessionById(sessionID); sessErr == nil {
+				returnFeed(w, articles)
+				return
+			}
+		}
+	}
+
 	session, err := sessions.CreateSession()
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
@@ -17,11 +27,16 @@ func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *repository.In
 	}
 	cookies.SetCookie(w, session.SessionId)
 
+	returnFeed(w, articles)
+}
+
+func returnFeed(w http.ResponseWriter, articles *repository.InMemoryArticle) {
 	mockArticles, err := articles.GetAllArticles()
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
 	if len(mockArticles) == 0 {
 		authorId := uuid.New()
 
@@ -46,27 +61,13 @@ func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *repository.In
 			"Компания BrightPath переработала интерфейс...")
 
 		_, _ = articles.CreateArticle(authorId,
-			"Экспериментальный сверхдлинный заголовок статьи, в котором мы попробуем уместить сразу и суть, и интригу, и даже немного юмора, чтобы проверить, как фронтенд справится с рендерингом текста, выходящего далеко за пределы обычной длины заголовков в реальных публикациях, ведь иногда бывают ситуации, когда авторы злоупотребляют символами, а пользователи всё равно должны видеть аккуратно оформленный результат",
-			`Это тестовое содержимое статьи, которое специально сделано очень длинным, чтобы проверить работу фронтенда с большими объёмами текста. Представьте, что здесь находится целый лонгрид: мы начинаем с введения, потом плавно переходим к основным идеям, приводим десятки примеров, вставляем длинные цитаты и оформляем структурированные абзацы.  
-
-На протяжении всего текста мы проверяем перенос строк, отступы, работу с большими блоками текста. Например:  
-
-- Пункт первый: фронтенд должен уметь обрезать или корректно отображать длинный текст в превью.  
-- Пункт второй: необходимо убедиться, что карточка поста не «разъезжается» при слишком большом контенте.  
-- Пункт третий: нужно протестировать скролл или сокращение текста.  
-
-Далее идёт ещё больше текста, чтобы имитировать статью на несколько страниц.  
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus varius, justo sit amet varius bibendum, orci felis interdum dui, non tempus justo eros nec velit. Nulla facilisi. Donec at semper massa, sed bibendum nulla. Mauris eget neque nec nunc facilisis porttitor. Cras id mauris lorem.  
-
-В итоге эта статья должна показать, что и бэкенд корректно отдаёт большие строки, и фронтенд правильно их рендерит, не ломая сетку, не обрезая важную информацию и не портя внешний вид.  
-`)
+			"Экспериментальный сверхдлинный заголовок статьи, в котором мы попробуем уместить сразу и суть, и интригу, и даже немного юмора, чтобы проверить, как фронтенд справится с рендерингом текста...",
+			`Это тестовое содержимое статьи, которое специально сделано очень длинным, чтобы проверить работу фронтенда с большими объёмами текста... (длинный текст)`)
 
 		mockArticles, _ = articles.GetAllArticles()
 	}
 
 	if err := json.Write(w, http.StatusOK, mockArticles); err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
 	}
-
 }
