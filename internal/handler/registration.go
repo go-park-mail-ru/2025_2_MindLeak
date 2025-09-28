@@ -7,8 +7,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
-
-	"github.com/google/uuid"
 )
 
 type UserRegisterInput struct {
@@ -38,10 +36,15 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 		return
 	}
 
-	sessionId := uuid.New()
-	cookies.SetCookie(w, sessionId)
+	session, err := sessions.CreateSession()
+	if err != nil {
+		json.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 
-	_, err = sessions.SetSessionUserId(sessionId, User.Id) //Pair UserId and SessionId
+	cookies.SetCookie(w, session.SessionId)
+
+	_, err = sessions.SetSessionUserId(session.SessionId, User.Id) //Pair UserId and SessionId
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
