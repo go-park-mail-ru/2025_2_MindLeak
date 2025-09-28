@@ -28,6 +28,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 
 	if newUserData.Email == "" || newUserData.Password == "" {
 		json.WriteError(w, http.StatusBadRequest, "Email or Password is required")
+		return
 	}
 
 	Email := newUserData.Email
@@ -60,6 +61,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 	sessionId, err := uuid.Parse(cookie.Value) //Search sessionId
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	_, err = sessions.SetSessionUserId(sessionId, User.Id) //Pair UserId and SessionId
