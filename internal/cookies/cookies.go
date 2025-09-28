@@ -17,7 +17,7 @@ func SetCookie(w http.ResponseWriter, sessionId uuid.UUID) {
 		Secure:   false,
 		Expires:  time.Now().Add(60 * time.Minute),
 		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, cookie)
 }
