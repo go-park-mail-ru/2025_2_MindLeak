@@ -48,21 +48,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 		return
 	}
 
-	cookie, err := cookies.GetCookie(r) //Search user cookie
-	cookies := r.Cookies()
-	for _, c := range cookies {
-		fmt.Printf("Cookie: %s = %s\n", c.Name, c.Value)
-	}
-	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	sessionId, err := uuid.Parse(cookie.Value) //Search sessionId
-	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
-	}
+	sessionId := uuid.New()
+	cookies.SetCookie(w, sessionId)
 
 	_, err = sessions.SetSessionUserId(sessionId, User.Id) //Pair UserId and SessionId
 	if err != nil {
