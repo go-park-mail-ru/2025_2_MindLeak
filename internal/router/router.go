@@ -11,21 +11,35 @@ import (
 func NewRouter(sessions *repository.InMemorySession, users *repository.InMemoryUser, articles *repository.InMemoryArticle) *http.ServeMux {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/feed", middleware.CORSMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		handler.FeedHandler(w, r, sessions, articles)
-	}))
-	mux.HandleFunc("/registration", middleware.CORSMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		handler.RegistrationHandler(w, r, sessions, users)
-	}))
-	mux.HandleFunc("/login", middleware.CORSMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		handler.LoginHandler(w, r, sessions, users)
-	}))
-	mux.HandleFunc("/logout", middleware.CORSMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		handler.LogoutHandler(w, r, sessions)
-	}))
-	mux.HandleFunc("/me", middleware.CORSMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		handler.MeHandler(w, r, sessions, users)
-	}))
+	mux.Handle("/feed", middleware.CORSMiddleware(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.FeedHandler(w, r, sessions, articles)
+		},
+	)))
+
+	mux.Handle("/registration", middleware.CORSMiddleware(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.RegistrationHandler(w, r, sessions, users)
+		},
+	)))
+
+	mux.Handle("/login", middleware.CORSMiddleware(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.LoginHandler(w, r, sessions, users)
+		},
+	)))
+
+	mux.Handle("/logout", middleware.CORSMiddleware(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.LogoutHandler(w, r, sessions)
+		},
+	)))
+
+	mux.Handle("/me", middleware.CORSMiddleware(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			handler.MeHandler(w, r, sessions, users)
+		},
+	)))
 
 	return mux
 }
