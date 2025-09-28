@@ -17,11 +17,14 @@ type ArticleRepository interface {
 }
 
 type Article struct {
-	Id        uuid.UUID
-	AuthorId  uuid.UUID
-	Title     string
-	Content   string
-	CreatedAt time.Time
+	Id           uuid.UUID `json:"id"`
+	AuthorId     uuid.UUID `json:"author_id"`
+	Title        string    `json:"title"`
+	Content      string    `json:"content"`
+	CreatedAt    time.Time `json:"created_at"`
+	Image        string    `json:"image"`
+	AuthorName   string    `json:"author_name"`
+	AuthorAvatar string    `json:"author_avatar"`
 }
 
 type InMemoryArticle struct {
@@ -46,11 +49,14 @@ func (mem *InMemoryArticle) CreateArticle(authorId uuid.UUID, title, content str
 	}
 
 	article := &Article{
-		Id:        uuid.New(),
-		AuthorId:  authorId,
-		Title:     title,
-		Content:   content,
-		CreatedAt: time.Now(),
+		Id:           uuid.New(),
+		AuthorId:     authorId,
+		Title:        title,
+		Content:      content,
+		CreatedAt:    time.Now(),
+		AuthorName:   "Алексей Владимиров",
+		AuthorAvatar: "https://sun9-88.userapi.com/s/v1/ig2/P_e5HW2lWX3ZxayBg73NnzbHzyhxFCXtBseRjSrN_NbemNC78OpkeYfJeXcTOXqyR8NhSwizZKqJEq_R8PhQo607.jpg?quality=95&as=32x40,48x60,72x90,108x135,160x200,240x300,360x450,480x600,540x675,640x800,720x900,1080x1350,1280x1600,1440x1800,1620x2025&from=bu&cs=1620x0",
+		Image:        "https://st4.depositphotos.com/36740986/38337/i/450/depositphotos_383375990-stock-photo-collection-hundred-dollar-banknotes-female.jpg",
 	}
 	mem.Articles = append(mem.Articles, article)
 	return article, nil

@@ -20,6 +20,7 @@ type User struct {
 	Email    string    `json:"email"`
 	Password string    `json:"-"`
 	Name     string    `json:"name"`
+	Avatar   string    `json:"avatar"`
 }
 
 type InMemoryUser struct {
@@ -47,6 +48,7 @@ func (mem *InMemoryUser) CreateUser(email string, password string, name string) 
 		Email:    email,
 		Password: password,
 		Name:     name,
+		Avatar:   "https://sun9-88.userapi.com/s/v1/ig2/P_e5HW2lWX3ZxayBg73NnzbHzyhxFCXtBseRjSrN_NbemNC78OpkeYfJeXcTOXqyR8NhSwizZKqJEq_R8PhQo607.jpg?quality=95&as=32x40,48x60,72x90,108x135,160x200,240x300,360x450,480x600,540x675,640x800,720x900,1080x1350,1280x1600,1440x1800,1620x2025&from=bu&cs=1620x0",
 	}
 	mem.Users = append(mem.Users, user)
 	return user, nil
