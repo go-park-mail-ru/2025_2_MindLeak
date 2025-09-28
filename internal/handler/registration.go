@@ -29,12 +29,6 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 
 	if newUserData.Email == "" || newUserData.Password == "" || newUserData.Name == "" {
 		json.WriteError(w, http.StatusBadRequest, "Email or Password or Name is required")
-	}
-
-	User, err := users.CreateUser(newUserData.Email, newUserData.Password, newUserData.Name) //Add new user in storage
-	//log.Println("REGISTER:", newUserData.Email, newUserData.Password, newUserData.Name)
-	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -43,6 +37,19 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	User, err := users.CreateUser(newUserData.Email, newUserData.Password, newUserData.Name) //Add new user in storage
+	//log.Println("REGISTER:", newUserData.Email, newUserData.Password, newUserData.Name)
+	if err != nil {
+		json.WriteError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	//
+	//cookie, err := cookies.GetCookie(r) //Search guest cookie
+	//if err != nil {
+	//	json.WriteError(w, http.StatusBadRequest, err.Error())
+	//	return
+	//}
 	sessionId, err := uuid.Parse(cookie.Value)             //Search sessionId
 	_, err = sessions.SetSessionUserId(sessionId, User.Id) //Pair UserId and SessionId
 	if err != nil {
