@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
@@ -31,6 +32,7 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 	}
 
 	User, err := users.CreateUser(newUserData.Email, newUserData.Password, newUserData.Name) //Add new user in storage
+	//log.Println("REGISTER:", newUserData.Email, newUserData.Password, newUserData.Name)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
@@ -52,4 +54,5 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	log.Println("REGISTER:", newUserData.Email, newUserData.Password, newUserData.Name)
 }
