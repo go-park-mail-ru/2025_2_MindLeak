@@ -13,6 +13,7 @@
 
 - [Софья Ситниченко](https://github.com/sonichka-s) — Frontend
 - [Константин Галанин](https://github.com/KonstantinGalanin) — Backend
+- [Владислав Алехин](https://github.com/3kybika)
 - Арина Асхабова — UX
 
 ### Ссылки
