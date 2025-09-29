@@ -35,7 +35,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 
 	User, err := users.GetUserByEmail(Email)
 	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
+		json.WriteError(w, http.StatusNotFound, err.Error())
 		return
 	}
 
