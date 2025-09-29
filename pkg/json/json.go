@@ -37,3 +37,15 @@ func WriteError(w http.ResponseWriter, status int, msg string) {
 	data, _ := json.Marshal(resp)
 	w.Write(data)
 }
+
+func WriteFieldError(w http.ResponseWriter, status int, field, message string) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	resp := map[string]interface{}{
+		"fieldErrors": []map[string]string{
+			{"field": field, "message": message},
+		},
+	}
+	return json.NewEncoder(w).Encode(resp)
+}

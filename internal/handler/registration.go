@@ -32,7 +32,7 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 
 	User, err := users.CreateUser(newUserData.Email, newUserData.Password, newUserData.Name) //Add new user in storage
 	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
+		json.WriteFieldError(w, http.StatusBadRequest, "email", "this user is already registered")
 		return
 	}
 
