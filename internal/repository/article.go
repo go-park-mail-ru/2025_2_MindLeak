@@ -38,12 +38,12 @@ func NewInMemoryArticle() *InMemoryArticle {
 	}
 }
 
-func (mem *InMemoryArticle) CreateArticle(authorId uuid.UUID, title, content string) (*Article, error) {
+func (mem *InMemoryArticle) CreateArticle(authorID uuid.UUID, title, content string) (*Article, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
 	for _, article := range mem.Articles {
-		if article.Title == title && article.AuthorId == authorId {
+		if article.Title == title && article.AuthorId == authorID {
 
 			return nil, errors.New("article with this title already exists for this author")
 		}
@@ -51,7 +51,7 @@ func (mem *InMemoryArticle) CreateArticle(authorId uuid.UUID, title, content str
 
 	article := Article{
 		Id:           uuid.New(),
-		AuthorId:     authorId,
+		AuthorId:     authorID,
 		Title:        title,
 		Content:      content,
 		CreatedAt:    time.Now(),
@@ -64,12 +64,12 @@ func (mem *InMemoryArticle) CreateArticle(authorId uuid.UUID, title, content str
 	return &copyArticle, nil
 }
 
-func (mem *InMemoryArticle) GetArticleById(id uuid.UUID) (*Article, error) {
+func (mem *InMemoryArticle) GetArticleById(articleID uuid.UUID) (*Article, error) {
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 
 	for i := range mem.Articles {
-		if mem.Articles[i].Id == id {
+		if mem.Articles[i].Id == articleID {
 			copyArticle := mem.Articles[i]
 			return &copyArticle, nil
 		}
@@ -99,18 +99,18 @@ func (mem *InMemoryArticle) GetAllArticles() ([]*Article, error) {
 
 	articlesCopy := make([]*Article, len(mem.Articles))
 	for i := range mem.Articles {
-		a := mem.Articles[i]
-		articlesCopy[i] = &a
+		temp := mem.Articles[i]
+		articlesCopy[i] = &temp
 	}
 	return articlesCopy, nil
 }
 
-func (mem *InMemoryArticle) DeleteArticle(id uuid.UUID) (bool, error) {
+func (mem *InMemoryArticle) DeleteArticle(articleID uuid.UUID) (bool, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
 	for idx, article := range mem.Articles {
-		if article.Id == id {
+		if article.Id == articleID {
 			mem.Articles[idx] = mem.Articles[len(mem.Articles)-1]
 			mem.Articles = mem.Articles[:len(mem.Articles)-1]
 
