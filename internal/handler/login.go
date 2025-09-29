@@ -34,12 +34,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 	fmt.Println(newUserData.Email, newUserData.Password)
 
 	User, err := users.GetUserByEmail(Email)
-	log.Println("FOUND:", User.Email, User.Password)
-
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
+
+	log.Println("FOUND:", User.Email, User.Password)
 
 	if User.Password != Password {
 		json.WriteError(w, http.StatusUnauthorized, "invalid password")
