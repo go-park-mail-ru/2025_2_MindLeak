@@ -1,7 +1,8 @@
-package handler
+package login
 
 import (
 	"fmt"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"log"
 	"net/http"
 
@@ -15,7 +16,7 @@ type UserLoginInput struct {
 	Password string
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession,
+func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession,
 	users *repository.InMemoryUser) {
 	newUserData := new(UserLoginInput)
 	err := json.Read(r, newUserData)

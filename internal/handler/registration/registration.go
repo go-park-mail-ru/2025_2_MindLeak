@@ -2,6 +2,7 @@ package registration
 
 import (
 	"errors"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"net/http"
 	"regexp"
 	"strings"
@@ -18,7 +19,7 @@ type UserRegisterInput struct {
 	Name     string `json:"name"`
 }
 
-func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession,
+func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession,
 	users *repository.InMemoryUser) {
 
 	newUserData := new(UserRegisterInput)

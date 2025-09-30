@@ -1,7 +1,10 @@
 package router
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/login"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/logout"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/registration"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler"
@@ -9,7 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
 )
 
-func NewRouter(sessions *repository.InMemorySession, users *repository.InMemoryUser, articles *repository.InMemoryArticle) *http.ServeMux {
+func NewRouter(sessions *session.InMemorySession, users *repository.InMemoryUser, articles *repository.InMemoryArticle) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.Handle("/feed", middleware.CORSMiddleware(http.HandlerFunc(
@@ -26,13 +29,13 @@ func NewRouter(sessions *repository.InMemorySession, users *repository.InMemoryU
 
 	mux.Handle("/login", middleware.CORSMiddleware(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.LoginHandler(w, r, sessions, users)
+			login.LoginHandler(w, r, sessions, users)
 		},
 	)))
 
 	mux.Handle("/logout", middleware.CORSMiddleware(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.LogoutHandler(w, r, sessions)
+			logout.LogoutHandler(w, r, sessions)
 		},
 	)))
 

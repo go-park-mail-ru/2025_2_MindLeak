@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
@@ -9,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession, articles *repository.InMemoryArticle) {
+func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, articles *repository.InMemoryArticle) {
 	cookie, err := cookies.GetCookie(r)
 	if err == nil {
 		if sessionID, parseErr := uuid.Parse(cookie.Value); parseErr == nil {

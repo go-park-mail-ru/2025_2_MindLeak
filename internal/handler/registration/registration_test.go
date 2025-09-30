@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -96,7 +97,7 @@ func TestRegistrationStatus(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/registration", bytes.NewBufferString(test.body))
 			w := httptest.NewRecorder()
 
-			sessions := repository.NewInMemorySession()
+			sessions := session.NewInMemorySession()
 			users := repository.NewInMemoryUser()
 
 			if test.name == "duplicate email" {
@@ -158,7 +159,7 @@ func TestRegistrationResponse(t *testing.T) {
 			req := httptest.NewRequest(http.MethodPost, "/registration", bytes.NewBufferString(test.body))
 			w := httptest.NewRecorder()
 
-			sessions := repository.NewInMemorySession()
+			sessions := session.NewInMemorySession()
 			users := repository.NewInMemoryUser()
 
 			RegistrationHandler(w, req, sessions, users)
