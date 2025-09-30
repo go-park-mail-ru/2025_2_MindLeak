@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/registration"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler"
@@ -19,7 +20,7 @@ func NewRouter(sessions *repository.InMemorySession, users *repository.InMemoryU
 
 	mux.Handle("/registration", middleware.CORSMiddleware(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.RegistrationHandler(w, r, sessions, users)
+			registration.RegistrationHandler(w, r, sessions, users)
 		},
 	)))
 
