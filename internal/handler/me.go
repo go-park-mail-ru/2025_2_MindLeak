@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
@@ -9,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func MeHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession, users *repository.InMemoryUser) {
+func MeHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, users *repository.InMemoryUser) {
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
 		json.WriteError(w, http.StatusUnauthorized, err.Error())
