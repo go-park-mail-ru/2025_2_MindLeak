@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"net/http"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func StartServer() {
-	sessions := repository.NewInMemorySession()
+	sessions := session.NewInMemorySession()
 	users := repository.NewInMemoryUser()
 	articles := repository.NewInMemoryArticle()
 

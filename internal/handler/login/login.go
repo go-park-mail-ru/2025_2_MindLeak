@@ -1,42 +1,53 @@
-package handler
+package login
 
 import (
 	"log"
 	"net/http"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
-type UserRegisterInput struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
+type UserLoginInput struct {
+	Email    string
+	Password string
 }
 
-func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession,
+func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession,
 	users *repository.InMemoryUser) {
 	if r.Method != http.MethodPost {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
 	}
 
-	newUserData := new(UserRegisterInput)
+	newUserData := new(UserLoginInput)
 	err := json.Read(r, newUserData)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	if newUserData.Email == "" || newUserData.Password == "" || newUserData.Name == "" {
-		json.WriteError(w, http.StatusBadRequest, "Email or Password or Name is required")
+	if newUserData.Email == "" || newUserData.Password == "" {
+		json.WriteError(w, http.StatusBadRequest, "Email or Password is required")
 		return
 	}
 
-	User, err := users.CreateUser(newUserData.Email, newUserData.Password, newUserData.Name)
+	email := newUserData.Email
+	password := newUserData.Password
+
+	user, err := users.GetUserByEmail(email)
 	if err != nil {
-		json.WriteError(w, http.StatusConflict, err.Error())
+		json.WriteError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	log.Println("FOUND:", user.Email, user.Password)
+
+	if user.Password != password {
+		json.WriteError(w, http.StatusUnauthorized, "invalid password")
 		return
 	}
 
@@ -48,16 +59,16 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 
 	cookies.SetCookie(w, session.SessionId)
 
-	_, err = sessions.SetSessionUserId(session.SessionId, User.Id)
+	_, err = sessions.SetSessionUserId(session.SessionId, user.Id)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err = json.Write(w, http.StatusCreated, User)
+	err = json.Write(w, http.StatusOK, user)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	log.Println("REGISTER:", newUserData.Email, newUserData.Password, newUserData.Name)
+
 }

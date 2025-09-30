@@ -1,16 +1,16 @@
-package handler
+package logout
 
 import (
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 
 	"github.com/google/uuid"
 )
 
-func LogoutHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession) {
+func LogoutHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession) {
 	if r.Method != http.MethodPost {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -31,6 +31,7 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request, sessions *repository.
 	sessionId, err := uuid.Parse(cookie.Value)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	flag, err := sessions.DeleteSessionById(sessionId)

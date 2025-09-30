@@ -3,13 +3,15 @@ package handler
 import (
 	"net/http"
 
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 	"github.com/google/uuid"
 )
 
-func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession, articles *repository.InMemoryArticle) {
+func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, articles *repository.InMemoryArticle) {
 	if r.Method != http.MethodGet {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
