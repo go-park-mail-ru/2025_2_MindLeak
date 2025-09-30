@@ -33,9 +33,36 @@ type InMemoryArticle struct {
 }
 
 func NewInMemoryArticle() *InMemoryArticle {
-	return &InMemoryArticle{
+	articles := &InMemoryArticle{
 		Articles: make([]Article, 0),
 	}
+	authorID := uuid.New()
+
+	_, _ = articles.CreateArticle(authorID,
+		"ИИ в 2025: Как нейросети меняют бизнес-процессы",
+		"Искусственный интеллект в 2025 году стал неотъемлемой частью бизнеса...")
+
+	_, _ = articles.CreateArticle(authorID,
+		"Как российский стартап привлёк $10M на рынке SaaS",
+		"Российский стартап CloudPeak разработал SaaS-платформу...")
+
+	_, _ = articles.CreateArticle(authorID,
+		"Тренды контент-маркетинга: Что работает в 2025 году",
+		"Контент-маркетинг в 2025 году переживает новый виток...")
+
+	_, _ = articles.CreateArticle(authorID,
+		"Почему 80% стартапов терпят неудачу в первый год",
+		"Запуск стартапа — это всегда риск...")
+
+	_, _ = articles.CreateArticle(authorID,
+		"Как мы увеличили конверсию на 30% с помощью UX",
+		"Компания BrightPath переработала интерфейс...")
+
+	_, _ = articles.CreateArticle(authorID,
+		"Экспериментальный сверхдлинный заголовок статьи, в котором мы попробуем уместить сразу и суть, и интригу, и даже немного юмора, чтобы проверить, как фронтенд справится с рендерингом текста...",
+		`Это тестовое содержимое статьи, которое специально сделано очень длинным, чтобы проверить работу фронтенда с большими объёмами текста... (длинный текст)`)
+
+	return articles
 }
 
 func (mem *InMemoryArticle) CreateArticle(authorID uuid.UUID, title, content string) (*Article, error) {

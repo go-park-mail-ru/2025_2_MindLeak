@@ -10,6 +10,11 @@ import (
 )
 
 func MeHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession, users *repository.InMemoryUser) {
+	if r.Method != http.MethodGet {
+		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
 		json.WriteError(w, http.StatusUnauthorized, err.Error())

@@ -17,6 +17,10 @@ type UserRegisterInput struct {
 
 func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession,
 	users *repository.InMemoryUser) {
+	if r.Method != http.MethodPost {
+		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
 
 	newUserData := new(UserRegisterInput)
 	err := json.Read(r, newUserData)
@@ -30,7 +34,7 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 		return
 	}
 
-	User, err := users.CreateUser(newUserData.Email, newUserData.Password, newUserData.Name) //Add new user in storage
+	User, err := users.CreateUser(newUserData.Email, newUserData.Password, newUserData.Name)
 	if err != nil {
 		json.WriteError(w, http.StatusConflict, err.Error())
 		return
@@ -44,13 +48,13 @@ func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *repos
 
 	cookies.SetCookie(w, session.SessionId)
 
-	_, err = sessions.SetSessionUserId(session.SessionId, User.Id) //Pair UserId and SessionId
+	_, err = sessions.SetSessionUserId(session.SessionId, User.Id)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err = json.Write(w, http.StatusCreated, User) //Writes json with User and Status as an answer
+	err = json.Write(w, http.StatusCreated, User)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
