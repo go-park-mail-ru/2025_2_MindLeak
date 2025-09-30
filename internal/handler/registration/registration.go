@@ -2,11 +2,12 @@ package registration
 
 import (
 	"errors"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"net/http"
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
@@ -75,10 +76,15 @@ var emailRequired = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 
 func validateEmail(email string) error {
 	if email == "" {
-		return errors.New("Email, password and name are required")
+		return errors.New("email, password and name are required")
 	}
+
 	if !emailRequired.MatchString(email) {
-		return errors.New("Email is invalid")
+		return errors.New("email is invalid")
+	}
+
+	if utf8.RuneCountInString(email) > 320 {
+		return errors.New("email is too long")
 	}
 
 	return nil
@@ -86,15 +92,19 @@ func validateEmail(email string) error {
 
 func validatePassword(password string) error {
 	if password == "" {
-		return errors.New("Email, password and name are required")
+		return errors.New("email, password and name are required")
 	}
 
 	if utf8.RuneCountInString(password) < 4 {
-		return errors.New("Password is too short")
+		return errors.New("password is too short")
 	}
 
 	if strings.Contains(password, " ") {
-		return errors.New("Password is invalid")
+		return errors.New("password is invalid")
+	}
+
+	if utf8.RuneCountInString(password) > 64 {
+		return errors.New("password is too long")
 	}
 
 	return nil
@@ -102,15 +112,19 @@ func validatePassword(password string) error {
 
 func validateName(name string) error {
 	if name == "" {
-		return errors.New("Email, password and name are required")
+		return errors.New("email, password and name are required")
 	}
 
 	if strings.Contains(name, " ") {
-		return errors.New("Name is invalid")
+		return errors.New("name is invalid")
 	}
 
 	if utf8.RuneCountInString(name) < 4 {
-		return errors.New("Name is too short")
+		return errors.New("name is too short")
+	}
+
+	if utf8.RuneCountInString(name) > 32 {
+		return errors.New("name is too long")
 	}
 
 	return nil
