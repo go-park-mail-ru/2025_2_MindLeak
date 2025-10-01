@@ -308,7 +308,6 @@ func TestMeHandlerResponse(t *testing.T) {
 				})
 			}
 
-			// Additional check for success case to ensure user and session are valid
 			if tt.name == "success" {
 				user, err := users.GetUserById(userID)
 				assert.NoError(t, err, "user should exist")
