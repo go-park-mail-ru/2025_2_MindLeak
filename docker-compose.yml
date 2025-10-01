@@ -1,0 +1,9 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: backend
+    restart: always
+    ports:
+      - "8090:8090"
