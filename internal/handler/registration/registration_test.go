@@ -138,14 +138,14 @@ func TestRegistrationResponse(t *testing.T) {
 			body:          `{"email":"user@mail.com","name":"user"}`,
 			wantStatus:    http.StatusBadRequest,
 			wantError:     true,
-			wantErrorText: "Email, password and name are required",
+			wantErrorText: "email, password and name are required",
 		},
 		{
 			name:          "invalid email",
 			body:          `{"email":"invalid","password":"1234","name":"user"}`,
 			wantStatus:    http.StatusBadRequest,
 			wantError:     true,
-			wantErrorText: "Email is invalid",
+			wantErrorText: "email is invalid",
 		},
 		{
 			name:       "valid user",
