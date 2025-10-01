@@ -1,4 +1,4 @@
-package handler
+package me
 
 import (
 	"net/http"
@@ -6,12 +6,12 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 	"github.com/google/uuid"
 )
 
-func MeHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, users *repository.InMemoryUser) {
+func MeHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, users *user.InMemoryUser) {
 	if r.Method != http.MethodGet {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return

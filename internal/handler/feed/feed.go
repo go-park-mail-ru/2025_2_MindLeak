@@ -1,4 +1,4 @@
-package handler
+package feed
 
 import (
 	"net/http"
@@ -6,12 +6,12 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	article "github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 	"github.com/google/uuid"
 )
 
-func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, articles *repository.InMemoryArticle) {
+func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, articles *article.InMemoryArticle) {
 	if r.Method != http.MethodGet {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -37,7 +37,7 @@ func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMem
 	returnFeed(w, articles)
 }
 
-func returnFeed(w http.ResponseWriter, articles *repository.InMemoryArticle) {
+func returnFeed(w http.ResponseWriter, articles *article.InMemoryArticle) {
 	mockArticles, err := articles.GetAllArticles()
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err.Error())

@@ -3,14 +3,15 @@ package login
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 )
 
 type UserResponse struct {
@@ -26,7 +27,7 @@ func TestLoginStatus(t *testing.T) {
 	type test struct {
 		name       string
 		body       string
-		setupUsers func() *repository.InMemoryUser
+		setupUsers func() *user.InMemoryUser
 		wantStatus int
 	}
 
@@ -34,32 +35,32 @@ func TestLoginStatus(t *testing.T) {
 		{
 			name:       "invalid json",
 			body:       "{bad json}",
-			setupUsers: repository.NewInMemoryUser,
+			setupUsers: user.NewInMemoryUser,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "missing email",
 			body:       `{"password":"123"}`,
-			setupUsers: repository.NewInMemoryUser,
+			setupUsers: user.NewInMemoryUser,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "missing password",
 			body:       `{"email":"user@mail.com"}`,
-			setupUsers: repository.NewInMemoryUser,
+			setupUsers: user.NewInMemoryUser,
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "user not found",
 			body:       `{"email":"ghost@mail.com","password":"123"}`,
-			setupUsers: repository.NewInMemoryUser,
+			setupUsers: user.NewInMemoryUser,
 			wantStatus: http.StatusNotFound,
 		},
 		{
 			name: "invalid password",
 			body: `{"email":"user@mail.com","password":"wrong"}`,
-			setupUsers: func() *repository.InMemoryUser {
-				users := repository.NewInMemoryUser()
+			setupUsers: func() *user.InMemoryUser {
+				users := user.NewInMemoryUser()
 				_, _ = users.CreateUser("user@mail.com", "123", "Test User")
 				return users
 			},
@@ -68,8 +69,8 @@ func TestLoginStatus(t *testing.T) {
 		{
 			name: "success login",
 			body: `{"email":"user@mail.com","password":"123"}`,
-			setupUsers: func() *repository.InMemoryUser {
-				users := repository.NewInMemoryUser()
+			setupUsers: func() *user.InMemoryUser {
+				users := user.NewInMemoryUser()
 				_, _ = users.CreateUser("user@mail.com", "123", "Test User")
 				return users
 			},
@@ -99,7 +100,7 @@ func TestLoginResponse(t *testing.T) {
 	type test struct {
 		name          string
 		body          string
-		setupUsers    func() *repository.InMemoryUser
+		setupUsers    func() *user.InMemoryUser
 		wantStatus    int
 		wantError     bool
 		wantErrorText string
@@ -111,7 +112,7 @@ func TestLoginResponse(t *testing.T) {
 		{
 			name:          "missing email",
 			body:          `{"password":"123"}`,
-			setupUsers:    repository.NewInMemoryUser,
+			setupUsers:    user.NewInMemoryUser,
 			wantStatus:    http.StatusBadRequest,
 			wantError:     true,
 			wantErrorText: "Email or Password is required",
@@ -119,7 +120,7 @@ func TestLoginResponse(t *testing.T) {
 		{
 			name:          "user not found",
 			body:          `{"email":"ghost@mail.com","password":"123"}`,
-			setupUsers:    repository.NewInMemoryUser,
+			setupUsers:    user.NewInMemoryUser,
 			wantStatus:    http.StatusNotFound,
 			wantError:     true,
 			wantErrorText: "user not found",
@@ -127,8 +128,8 @@ func TestLoginResponse(t *testing.T) {
 		{
 			name: "invalid password",
 			body: `{"email":"user@mail.com","password":"wrong"}`,
-			setupUsers: func() *repository.InMemoryUser {
-				users := repository.NewInMemoryUser()
+			setupUsers: func() *user.InMemoryUser {
+				users := user.NewInMemoryUser()
 				_, _ = users.CreateUser("user@mail.com", "123", "Test User")
 				return users
 			},
@@ -139,8 +140,8 @@ func TestLoginResponse(t *testing.T) {
 		{
 			name: "success login",
 			body: `{"email":"user@mail.com","password":"123"}`,
-			setupUsers: func() *repository.InMemoryUser {
-				users := repository.NewInMemoryUser()
+			setupUsers: func() *user.InMemoryUser {
+				users := user.NewInMemoryUser()
 				_, _ = users.CreateUser("user@mail.com", "123", "Test User")
 				return users
 			},

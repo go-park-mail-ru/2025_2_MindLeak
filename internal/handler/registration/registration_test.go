@@ -3,13 +3,14 @@ package registration
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRegistrationStatus(t *testing.T) {
@@ -98,7 +99,7 @@ func TestRegistrationStatus(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			sessions := session.NewInMemorySession()
-			users := repository.NewInMemoryUser()
+			users := user.NewInMemoryUser()
 
 			if test.name == "duplicate email" {
 				_, _ = users.CreateUser("dup@mail.com", "1234", "user")
@@ -160,7 +161,7 @@ func TestRegistrationResponse(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			sessions := session.NewInMemorySession()
-			users := repository.NewInMemoryUser()
+			users := user.NewInMemoryUser()
 
 			RegistrationHandler(w, req, sessions, users)
 

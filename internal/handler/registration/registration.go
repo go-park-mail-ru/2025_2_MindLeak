@@ -10,7 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
@@ -21,7 +21,7 @@ type UserRegisterInput struct {
 }
 
 func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession,
-	users *repository.InMemoryUser) {
+	users *user.InMemoryUser) {
 	if r.Method != http.MethodPost {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return

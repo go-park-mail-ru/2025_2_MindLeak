@@ -2,19 +2,22 @@ package server
 
 import (
 	"fmt"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"net/http"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/router"
 )
 
 func StartServer() {
 	sessions := session.NewInMemorySession()
-	users := repository.NewInMemoryUser()
-	articles := repository.NewInMemoryArticle()
+	users := user.NewInMemoryUser()
+	articles := article.NewInMemoryArticle()
 
 	mux := router.NewRouter(sessions, users, articles)
 	handler := middleware.CORSMiddleware(mux)
