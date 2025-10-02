@@ -99,8 +99,7 @@ func (mem *InMemoryUser) DeleteUser(userID uuid.UUID) (bool, error) {
 
 	for idx, user := range mem.Users {
 		if user.Id == userID {
-			mem.Users[idx] = mem.Users[len(mem.Users)-1]
-			mem.Users = mem.Users[:len(mem.Users)-1]
+			mem.Users = append(mem.Users[:idx], mem.Users[idx+1:]...)
 			return true, nil
 		}
 	}
