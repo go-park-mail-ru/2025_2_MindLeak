@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func LogoutHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession) {
+func LogoutHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository) {
 	if r.Method != http.MethodPost {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return

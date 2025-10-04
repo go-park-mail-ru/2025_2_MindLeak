@@ -20,8 +20,8 @@ type UserRegisterInput struct {
 	Name     string `json:"name"`
 }
 
-func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession,
-	users *user.InMemoryUser) {
+func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository,
+	users user.UserRepository) {
 	if r.Method != http.MethodPost {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return

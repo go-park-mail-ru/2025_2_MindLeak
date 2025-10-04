@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func MeHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, users *user.InMemoryUser) {
+func MeHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository, users user.UserRepository) {
 	if r.Method != http.MethodGet {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return

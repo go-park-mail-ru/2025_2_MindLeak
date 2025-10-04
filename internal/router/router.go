@@ -15,7 +15,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 )
 
-func NewRouter(sessions *session.InMemorySession, users *user.InMemoryUser, articles *article.InMemoryArticle) *http.ServeMux {
+func NewRouter(sessions session.SessionRepository, users user.UserRepository, articles article.ArticleRepository) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.Handle("/feed", middleware.CORSMiddleware(http.HandlerFunc(
