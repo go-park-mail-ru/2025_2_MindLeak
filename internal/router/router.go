@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/swagger"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/feed"
@@ -45,6 +46,12 @@ func NewRouter(sessions session.SessionRepository, users user.UserRepository, ar
 	mux.Handle("/me", middleware.CORSMiddleware(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			handler.MeHandler(w, r, sessions, users)
+		},
+	)))
+
+	mux.Handle("/swagger/", middleware.CORSMiddleware(http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			swagger.SwaggerHandler(w, r)
 		},
 	)))
 
