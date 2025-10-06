@@ -17,8 +17,8 @@ type UserLoginInput struct {
 	Password string
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession,
-	users *user.InMemoryUser) {
+func LoginHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository,
+	users user.UserRepository) {
 	if r.Method != http.MethodPost {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return

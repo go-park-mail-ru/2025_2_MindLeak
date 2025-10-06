@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMemorySession, articles *article.InMemoryArticle) {
+func FeedHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository, articles article.ArticleRepository) {
 	if r.Method != http.MethodGet {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -37,7 +37,7 @@ func FeedHandler(w http.ResponseWriter, r *http.Request, sessions *session.InMem
 	returnFeed(w, articles)
 }
 
-func returnFeed(w http.ResponseWriter, articles *article.InMemoryArticle) {
+func returnFeed(w http.ResponseWriter, articles article.ArticleRepository) {
 	mockArticles, err := articles.GetAllArticles()
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
