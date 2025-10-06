@@ -11,6 +11,9 @@ func CORSMiddleware(next http.Handler) http.Handler {
 			"http://127.0.0.1:3000",
 			"https://mindleak.ru",
 			"https://www.mindleak.ru",
+			"http://127.0.0.1:3000",
+			"http://localhost:5173",
+			"https://www.mindleak.ru",
 		}
 
 		for _, o := range allowedOrigins {
