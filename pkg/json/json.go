@@ -21,11 +21,12 @@ func Write(w http.ResponseWriter, status int, int interface{}) error {
 		return err
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	_, err = w.Write(resp)
 	if err != nil {
 		return err
 	}
-	w.WriteHeader(status)
+	//w.WriteHeader(status)
 	return nil
 }
 

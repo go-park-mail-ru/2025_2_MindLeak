@@ -14,11 +14,10 @@ func SetCookie(w http.ResponseWriter, sessionId uuid.UUID) {
 		Name:     SessionID,
 		Value:    sessionId.String(),
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
 		Expires:  time.Now().Add(60 * time.Minute),
 		Path:     "/",
-		//SameSite: http.SameSiteNoneMode,
-		//Domain:   "62.109.19.84",
 	}
 	http.SetCookie(w, cookie)
 }

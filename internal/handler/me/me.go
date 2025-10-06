@@ -1,15 +1,22 @@
-package handler
+package me
 
 import (
 	"net/http"
 
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 	"github.com/google/uuid"
 )
 
-func MeHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession, users *repository.InMemoryUser) {
+func MeHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository, users user.UserRepository) {
+	if r.Method != http.MethodGet {
+		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
 		json.WriteError(w, http.StatusUnauthorized, err.Error())

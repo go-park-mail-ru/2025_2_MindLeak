@@ -1,12 +1,14 @@
-package handler
+package login
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
@@ -15,8 +17,13 @@ type UserLoginInput struct {
 	Password string
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.InMemorySession,
-	users *repository.InMemoryUser) {
+func LoginHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository,
+	users user.UserRepository) {
+	if r.Method != http.MethodPost {
+		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
 	newUserData := new(UserLoginInput)
 	err := json.Read(r, newUserData)
 	if err != nil {
@@ -29,19 +36,18 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 		return
 	}
 
-	Email := newUserData.Email
-	Password := newUserData.Password
-	fmt.Println(newUserData.Email, newUserData.Password)
+	email := newUserData.Email
+	password := newUserData.Password
 
-	User, err := users.GetUserByEmail(Email)
+	user, err := users.GetUserByEmail(email)
 	if err != nil {
 		json.WriteError(w, http.StatusNotFound, err.Error())
 		return
 	}
 
-	log.Println("FOUND:", User.Email, User.Password)
+	log.Println("FOUND:", user.Email, user.Password)
 
-	if User.Password != Password {
+	if user.Password != password {
 		json.WriteError(w, http.StatusUnauthorized, "invalid password")
 		return
 	}
@@ -54,13 +60,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions *repository.I
 
 	cookies.SetCookie(w, session.SessionId)
 
-	_, err = sessions.SetSessionUserId(session.SessionId, User.Id) //Pair UserId and SessionId
+	_, err = sessions.SetSessionUserId(session.SessionId, user.Id)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	err = json.Write(w, http.StatusOK, User) //Writes json with User and Status as an answer
+	err = json.Write(w, http.StatusOK, user)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
 		return

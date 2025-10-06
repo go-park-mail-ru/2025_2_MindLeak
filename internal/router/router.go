@@ -3,35 +3,42 @@ package router
 import (
 	"net/http"
 
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/feed"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/login"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/logout"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/registration"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
+
+	handler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/me"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 )
 
-func NewRouter(sessions *repository.InMemorySession, users *repository.InMemoryUser, articles *repository.InMemoryArticle) *http.ServeMux {
+func NewRouter(sessions session.SessionRepository, users user.UserRepository, articles article.ArticleRepository) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	mux.Handle("/feed", middleware.CORSMiddleware(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.FeedHandler(w, r, sessions, articles)
+			feed.FeedHandler(w, r, sessions, articles)
 		},
 	)))
 
 	mux.Handle("/registration", middleware.CORSMiddleware(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.RegistrationHandler(w, r, sessions, users)
+			registration.RegistrationHandler(w, r, sessions, users)
 		},
 	)))
 
 	mux.Handle("/login", middleware.CORSMiddleware(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.LoginHandler(w, r, sessions, users)
+			login.LoginHandler(w, r, sessions, users)
 		},
 	)))
 
 	mux.Handle("/logout", middleware.CORSMiddleware(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			handler.LogoutHandler(w, r, sessions)
+			logout.LogoutHandler(w, r, sessions)
 		},
 	)))
 
