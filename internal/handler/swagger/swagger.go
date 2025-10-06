@@ -9,7 +9,7 @@ import (
 
 func SwaggerHandler(w http.ResponseWriter, r *http.Request) {
 	if filepath.Base(r.URL.Path) == "swagger.json" {
-		http.ServeFile(w, r, "swagger/swagger.json")
+		http.ServeFile(w, r, "/api/swagger/swagger.json")
 		return
 	}
 
