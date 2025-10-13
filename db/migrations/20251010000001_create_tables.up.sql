@@ -5,7 +5,7 @@ CREATE TYPE notification_type AS ENUM ('like', 'comment', 'follow');
 
 CREATE TABLE user (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    login TEXT NOT NULL UNIQUE CHECK (LENGTH(login) >= 4 AND LENGTH(login) <= 32),
+    login TEXT NOT NULL UNIQUE CHECK (LENGTH(login) >= 4 AND LENGTH(login) <= 32 AND CHECK (login !~ ' ')),
     password_hash TEXT NOT NULL CHECK (LENGTH(password_hash) <= 255),
     email TEXT NOT NULL UNIQUE CHECK (LENGTH(email) <= 320 AND email ~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
