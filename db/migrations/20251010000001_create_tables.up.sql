@@ -1,9 +1,12 @@
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
+CREATE TYPE article_status AS ENUM ('draft', 'published', 'archived');
+CREATE TYPE notification_type AS ENUM ('like', 'comment', 'follow');
+
 CREATE TABLE user (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     login TEXT NOT NULL UNIQUE CHECK (LENGTH(login) >= 4 AND LENGTH(login) <= 32),
-    password_hash TEXT NOT NULL,
+    password_hash TEXT NOT NULL CHECK (LENGTH(password_hash) <= 255),
     email TEXT NOT NULL UNIQUE CHECK (LENGTH(email) <= 320 AND email ~ '^[^\s@]+@[^\s@]+\.[^\s@]+$'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -12,7 +15,7 @@ CREATE TABLE user (
 CREATE TABLE user_profile (
     user_id UUID PRIMARY KEY,
     display_name TEXT NOT NULL CHECK (LENGTH(display_name) <= 32),
-    bio TEXT,
+    bio TEXT CHECK (LENGTH(bio) <= 1000),
     avatar_url TEXT CHECK (avatar_url ~ '^https?://[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.*$'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -21,7 +24,7 @@ CREATE TABLE user_profile (
 
 CREATE TABLE category (
     category_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL UNIQUE CHECK (LENGTH(login) >= 4 AND LENGTH(name) <= 32),
+    name TEXT NOT NULL UNIQUE CHECK (LENGTH(name) >= 4 AND LENGTH(name) <= 32),
     description TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -29,17 +32,17 @@ CREATE TABLE category (
 
 CREATE TABLE tag (
     tag_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL UNIQUE CHECK (LENGTH(login) >= 4 AND LENGTH(name) <= 32),
+    name TEXT NOT NULL UNIQUE CHECK (LENGTH(name) >= 4 AND LENGTH(name) <= 32),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE article (
     article_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL CHECK (LENGTH(title) <= 200),
-    content TEXT NOT NULL,
+    content TEXT NOT NULL CHECK (LENGTH(content) <= 100000),
     author_id UUID NOT NULL,
     published_at TIMESTAMPTZ,
-    status TEXT NOT NULL CHECK (status IN ('draft', 'published', 'archived')),
+    status article_status NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_author FOREIGN KEY (author_id) REFERENCES user(user_id) ON DELETE RESTRICT
@@ -49,7 +52,7 @@ CREATE TABLE comment (
     comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     article_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    content TEXT NOT NULL,
+    content TEXT NOT NULL CHECK (LENGTH(content) <= 1000),
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_article FOREIGN KEY (article_id) REFERENCES article(article_id) ON DELETE CASCADE,
@@ -95,9 +98,37 @@ CREATE TABLE comment_like (
 CREATE TABLE notification (
     notification_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
-    type TEXT NOT NULL CHECK (type IN ('like', 'comment', 'follow')),
+    type notification_type NOT NULL,
     content TEXT NOT NULL CHECK (LENGTH(content) <= 500),
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
 );
+
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_user_updated_at
+BEFORE UPDATE ON user
+FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER trigger_update_user_profile_updated_at
+BEFORE UPDATE ON user_profile
+FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER trigger_update_category_updated_at
+BEFORE UPDATE ON category
+FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER trigger_update_article_updated_at
+BEFORE UPDATE ON article
+FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER trigger_update_comment_updated_at
+BEFORE UPDATE ON comment
+FOR EACH ROW EXECUTE FUNCTION update_updated_at();
