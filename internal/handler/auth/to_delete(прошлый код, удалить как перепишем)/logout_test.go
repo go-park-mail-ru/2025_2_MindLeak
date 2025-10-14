@@ -1,4 +1,4 @@
-package auth
+package to_delete_прошлый_код__удалить_как_перепишем_
 
 import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
