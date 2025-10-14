@@ -1,4 +1,4 @@
-package login
+package auth
 
 import (
 	"log"
@@ -12,10 +12,10 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
-type UserLoginInput struct {
-	Email    string
-	Password string
-}
+//type UserLoginInput struct {
+//	Email    string
+//	Password string
+//}
 
 func LoginHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository,
 	users user.UserRepository) {

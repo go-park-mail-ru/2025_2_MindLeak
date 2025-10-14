@@ -1,4 +1,4 @@
-package registration
+package auth
 
 import (
 	"errors"
@@ -14,11 +14,11 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
-type UserRegisterInput struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Name     string `json:"name"`
-}
+//type UserRegisterInput struct {
+//	Email    string `json:"email"`
+//	Password string `json:"password"`
+//	Name     string `json:"name"`
+//}
 
 func RegistrationHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository,
 	users user.UserRepository) {

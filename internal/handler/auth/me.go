@@ -1,4 +1,4 @@
-package me
+package auth
 
 import (
 	"net/http"
