@@ -1,11 +1,12 @@
 package to_delete_прошлый_код__удалить_как_перепишем_
 
 import (
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/google/uuid"

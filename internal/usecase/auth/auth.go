@@ -1,12 +1,10 @@
 package auth
 
-type repository interface {
-}
+import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/entities"
+)
 
-type Processor struct {
-	repo repository
-}
-
-func NewProcessor(repo repository) *Processor {
-	return &Processor{repo: repo}
+type AuthUsecase interface {
+	Registration(User entities.User) (dto.RegisteredUserDto, error)
 }
