@@ -1,4 +1,4 @@
-package entities
+package models
 
 import "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth/dto"
 

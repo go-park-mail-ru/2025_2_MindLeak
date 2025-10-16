@@ -5,13 +5,13 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 )
 
-type Processor struct {
+type AuthUsecase struct {
 	userRepo    user.UserRepository
 	sessionRepo session.SessionRepository
 }
 
-func NewProcessor(userRepo user.UserRepository, sessionRepo session.SessionRepository) *Processor {
-	return &Processor{
+func NewAuthUsecase(userRepo user.UserRepository, sessionRepo session.SessionRepository) *AuthUsecase {
+	return &AuthUsecase{
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,
 	}

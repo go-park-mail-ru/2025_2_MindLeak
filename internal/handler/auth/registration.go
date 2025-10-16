@@ -1,10 +1,10 @@
-package handler
+package auth
 
 import (
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth/dto"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/entities"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
@@ -22,7 +22,7 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 	}
 	//Отправляем IN dto в конвертер энтити уровня юзкейса. Возвращает структуру уровня юзкейса
 	//Которую мы потом будем рассылать по методам юзкейса
-	newUserEntity := entities.Converter(*userInputDto)
+	newUserEntity := models.Converter(*userInputDto)
 
 	//На уровне юзкейса я планирую сделать одну дто для отдачи бизнес-сущности на уровень контроллера
 	//То есть регистрация по идее должна будет возвращать юзкейс дто, который мы потом замапим в OUT

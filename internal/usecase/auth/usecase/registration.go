@@ -9,11 +9,11 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/entities"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
-func (p *Processor) Registration(w http.ResponseWriter, user entities.User) (*dto.RegisteredUserDto, error) {
+func (p *AuthUsecase) Registration(w http.ResponseWriter, user models.User) (*dto.RegisteredUserDto, error) {
 
 	if err := validateEmail(user.Email); err != nil {
 		json.WriteError(w, http.StatusBadRequest, err.Error())
