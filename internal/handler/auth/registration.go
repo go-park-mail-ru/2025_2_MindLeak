@@ -1,14 +1,16 @@
 package auth
 
 import (
-	"net/http"
-
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth/dto"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/models"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
+	"net/http"
 )
 
 func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	// Эта проверка уйдет с переходом на гориллу
 	if r.Method != http.MethodPost {
 		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
 		return
@@ -17,25 +19,36 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 	userInputDto := &dto.UserInputRegistration{}
 	err := json.Read(r, userInputDto)
 	if err != nil {
-		json.WriteError(w, http.StatusInternalServerError, err.Error())
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
 		return
 	}
-	//Отправляем IN dto в конвертер энтити уровня юзкейса. Возвращает структуру уровня юзкейса
-	//Которую мы потом будем рассылать по методам юзкейса
-	newUserEntity := models.Converter(*userInputDto)
 
-	//На уровне юзкейса я планирую сделать одну дто для отдачи бизнес-сущности на уровень контроллера
-	//То есть регистрация по идее должна будет возвращать юзкейс дто, который мы потом замапим в OUT
-	//дто хендлера
-	output, err := h.Usecase.Registration(newUserEntity)
+	newUserEntity := &models.User{
+		Email:    userInputDto.Email,
+		Password: userInputDto.Password,
+		Name:     userInputDto.Name,
+	}
+
+	output, sessionID, err := h.Usecase.Registration(ctx, *newUserEntity)
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		return
+	}
+
 	userOutputDto := &dto.UserOutputRegistration{
 		Email:  output.Email,
 		Name:   output.Name,
 		Avatar: output.Avatar,
 	}
-	if err != nil {
-		json.WriteError(w, http.StatusConflict, err.Error()) //Тут бы подумать о том, как прокидывать из юзкейсов ошибки
-	}
 
-	json.Write(w, http.StatusCreated, userOutputDto)
+	cookies.SetCookie(w, sessionID)
+
+	err = json.Write(w, http.StatusCreated, userOutputDto)
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		return
+	}
 }

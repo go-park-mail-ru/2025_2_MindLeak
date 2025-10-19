@@ -12,11 +12,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
-//type UserLoginInput struct {
-//	Email    string
-//	Password string
-//}
-
 func LoginHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository,
 	users user.UserRepository) {
 	if r.Method != http.MethodPost {
@@ -45,7 +40,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions session.Sessi
 		return
 	}
 
-	log.Println("FOUND:", user.Email, user.Password)
+	//log.Println("FOUND:", user.Email, user.Password)
 
 	if user.Password != password {
 		json.WriteError(w, http.StatusUnauthorized, "invalid password")

@@ -1,73 +1,52 @@
 package usecase
 
 import (
-	"errors"
-	"net/http"
+	"context"
+	"fmt"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
+	"github.com/google/uuid"
 	"regexp"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/models"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
 
-func (p *AuthUsecase) Registration(w http.ResponseWriter, user models.User) (*dto.RegisteredUserDto, error) {
+func (u *Usecase) Registration(ctx context.Context, user models.User) (dto.RegisteredUserDto, uuid.UUID, error) {
 
 	if err := validateEmail(user.Email); err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
+		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate email: %w", err)
 	}
 
 	if err := validatePassword(user.Password); err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
+		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate password: %w", err)
 	}
 
 	if err := validateName(user.Name); err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
+		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate name: %w", err)
 	}
 
-	//Тут видимо нужно дернуть методы репозитория
-
-	//Возвращаем созданного в базе юзера
-	//Возвращаться будет доменная модель уровня репы, которая также пойдет в базу. У него уже будет айдишник и тд
-	newUser, err := p.userRepo.CreateUser(user.Email, user.Password, user.Name)
+	newUser, err := u.userRepo.CreateUser(ctx, user.Email, user.Password, user.Name)
 	if err != nil {
-		json.WriteError(w, http.StatusConflict, err.Error())
-		return
+		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("create user: %w", err)
 	}
 
-	//Сейм история только про сессии
-	session, err := p.sessionRepo.CreateSession()
+	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
+		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("create session: %w", err)
 	}
 
-	cookies.SetCookie(w, session.SessionId)
-
-	_, err = p.sessionRepo.SetSessionUserId(session.SessionId, newUser.Id)
+	_, err = u.sessionRepo.SetSessionUserId(ctx, session.SessionId, newUser.Id)
 	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, err.Error())
-		return
+		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("set session: %w", err)
 	}
 
-	outDto := &dto.RegisteredUserDto{
+	outDto := dto.RegisteredUserDto{
 		Email:  newUser.Email,
 		Name:   newUser.Name,
 		Avatar: newUser.Avatar,
 	}
 
-	return outDto, nil
-
-	//err = json.Write(w, http.StatusCreated, user)
-	//if err != nil {
-	//	json.WriteError(w, http.StatusInternalServerError, err.Error())
-	//	return
-	//}
+	return outDto, session.SessionId, nil
 
 }
 
@@ -75,15 +54,15 @@ var emailRequired = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 
 func validateEmail(email string) error {
 	if email == "" {
-		return errors.New("email, password and name are required")
+		return InvalidEmail
 	}
 
 	if !emailRequired.MatchString(email) {
-		return errors.New("email is invalid")
+		return InvalidEmail
 	}
 
 	if utf8.RuneCountInString(email) > 320 {
-		return errors.New("email is too long")
+		return InvalidEmail
 	}
 
 	return nil
@@ -91,19 +70,19 @@ func validateEmail(email string) error {
 
 func validatePassword(password string) error {
 	if password == "" {
-		return errors.New("email, password and name are required")
+		return InvalidPassword
 	}
 
 	if utf8.RuneCountInString(password) < 4 {
-		return errors.New("password is too short")
+		return InvalidPassword
 	}
 
 	if strings.Contains(password, " ") {
-		return errors.New("password is invalid")
+		return InvalidPassword
 	}
 
 	if utf8.RuneCountInString(password) > 64 {
-		return errors.New("password is too long")
+		return InvalidPassword
 	}
 
 	return nil
@@ -111,19 +90,19 @@ func validatePassword(password string) error {
 
 func validateName(name string) error {
 	if name == "" {
-		return errors.New("email, password and name are required")
+		return InvalidName
 	}
 
 	if strings.Contains(name, " ") {
-		return errors.New("name is invalid")
+		return InvalidName
 	}
 
 	if utf8.RuneCountInString(name) < 4 {
-		return errors.New("name is too short")
+		return InvalidName
 	}
 
 	if utf8.RuneCountInString(name) > 32 {
-		return errors.New("name is too long")
+		return InvalidName
 	}
 
 	return nil
