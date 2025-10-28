@@ -1,0 +1,69 @@
+package article
+
+import (
+	"net/http"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article/dto"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	usecaseDTO "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/article/dto"
+	"github.com/gorilla/schema"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
+)
+
+var decoder = schema.NewDecoder()
+
+func (h *Handler) FeedHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	decoder.IgnoreUnknownKeys(true)
+
+	// Эта проверка уйдет с переходом на гориллу
+	if r.Method != http.MethodGet {
+		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
+		return
+	}
+
+	feedInputDTO := &dto.FeedInputDTO{}
+	if err := decoder.Decode(feedInputDTO, r.URL.Query()); err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		return
+	}
+
+	feedEntity := &models.Feed{
+		Offset: feedInputDTO.Offset,
+	}
+
+	output, err := h.Usecase.Feed(ctx, *feedEntity)
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		return
+	}
+
+	feedOutputDto := toOutputDTO(output)
+
+	err = json.Write(w, http.StatusOK, feedOutputDto)
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		return
+	}
+}
+
+func toOutputDTO(usecaseDto usecaseDTO.ReceivedFeedDTO) dto.FeedOutputDTO {
+	result := make([]dto.ArticleOutputDTO, len(usecaseDto.Articles))
+	for i, a := range usecaseDto.Articles {
+		result[i] = dto.ArticleOutputDTO{
+			Id:           a.Id,
+			AuthorId:     a.AuthorId,
+			Title:        a.Title,
+			Content:      a.Content,
+			CreatedAt:    a.CreatedAt,
+			Image:        a.Image,
+			AuthorName:   a.AuthorName,
+			AuthorAvatar: a.AuthorAvatar,
+		}
+	}
+	return dto.FeedOutputDTO{Articles: result}
+}
