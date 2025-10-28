@@ -2,16 +2,17 @@ package auth
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/usecase"
-	"net/http"
 )
 
 type Handler struct {
 	Usecase auth.Usecase
 }
 
-func NewHandler(u auth.Usecase) *Handler {
+func NewAuthHandler(u auth.Usecase) *Handler {
 	return &Handler{Usecase: u}
 }
 

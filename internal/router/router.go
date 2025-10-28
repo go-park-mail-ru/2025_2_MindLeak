@@ -1,57 +1,24 @@
 package router
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/swagger"
-	to_delete_прошлый_код__удалить_как_перепишем_2 "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/to_delete(прошлый код, удалить как перепишем)"
-
-	"net/http"
-
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/feed"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
-
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
+	"github.com/gorilla/mux"
 )
 
-func NewRouter(sessions session.SessionRepository, users user.UserRepository, articles article.ArticleRepository) *http.ServeMux {
-	mux := http.NewServeMux()
+func NewRouter(articleHandler *article.Handler, authHandler *auth.Handler) *mux.Router {
+	router := mux.NewRouter()
 
-	mux.Handle("/feed", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			feed.FeedHandler(w, r, sessions, articles)
-		},
-	)))
+	router.Use(middleware.CORSMiddleware)
 
-	mux.Handle("/registration", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			to_delete_прошлый_код__удалить_как_перепишем_2.RegistrationHandler(w, r, sessions, users)
-		},
-	)))
+	router.HandleFunc("/feed", articleHandler.Feed).Methods("GET")
+	router.HandleFunc("/registration", authHandler.Registration).Methods("POST")
+	router.HandleFunc("/login", authHandler.Login).Methods("POST")
+	router.HandleFunc("/logout", authHandler.Logout).Methods("GET")
+	router.HandleFunc("/me", authHandler.Me).Methods("GET")
+	router.HandleFunc("/swagger", swagger.SwaggerHandler).Methods("GET")
 
-	mux.Handle("/login", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			to_delete_прошлый_код__удалить_как_перепишем_2.LoginHandler(w, r, sessions, users)
-		},
-	)))
-
-	mux.Handle("/logout", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			to_delete_прошлый_код__удалить_как_перепишем_2.LogoutHandler(w, r, sessions)
-		},
-	)))
-
-	mux.Handle("/me", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			to_delete_прошлый_код__удалить_как_перепишем_2.MeHandler(w, r, sessions, users)
-		},
-	)))
-
-	mux.Handle("/swagger/", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			swagger.SwaggerHandler(w, r)
-		},
-	)))
-
-	return mux
+	return router
 }

@@ -12,7 +12,7 @@ type Handler struct {
 	Usecase article.Usecase
 }
 
-func NewHandler(u article.Usecase) *Handler {
+func NewArticleHandler(u article.Usecase) *Handler {
 	return &Handler{Usecase: u}
 }
 

@@ -73,7 +73,7 @@ func NewInMemoryArticle() *InMemoryArticle {
 	return articles
 }
 
-func (mem *InMemoryArticle) CreateArticle(authorID uuid.UUID, title, content string) (*Article, error) {
+func (mem *InMemoryArticle) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string) (*Article, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 

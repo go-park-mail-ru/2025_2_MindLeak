@@ -13,15 +13,9 @@ import (
 
 var decoder = schema.NewDecoder()
 
-func (h *Handler) FeedHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Feed(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	decoder.IgnoreUnknownKeys(true)
-
-	// Эта проверка уйдет с переходом на гориллу
-	if r.Method != http.MethodGet {
-		json.WriteError(w, http.StatusMethodNotAllowed, "method not allowed")
-		return
-	}
 
 	feedInputDTO := &dto.FeedInputDTO{}
 	if err := decoder.Decode(feedInputDTO, r.URL.Query()); err != nil {
