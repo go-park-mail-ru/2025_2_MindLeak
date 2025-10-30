@@ -1,10 +1,11 @@
 package auth
 
 import (
+	"net/http"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 	"github.com/google/uuid"
-	"net/http"
 )
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +34,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		///
 	}
 	if flag {
-		json.Write(w, http.StatusOK, map[string]string{"messaage": "logged out"})
+		json.Write(w, http.StatusOK, map[string]string{"message": "logged out"})
 		return
 	}
 }

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	repoSession "github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
