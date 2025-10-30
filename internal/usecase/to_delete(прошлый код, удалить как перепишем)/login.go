@@ -1,4 +1,4 @@
-package login
+package to_delete_прошлый_код__удалить_как_перепишем_
 
 import (
 	"log"
@@ -11,11 +11,6 @@ import (
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 )
-
-type UserLoginInput struct {
-	Email    string
-	Password string
-}
 
 func LoginHandler(w http.ResponseWriter, r *http.Request, sessions session.SessionRepository,
 	users user.UserRepository) {
@@ -45,7 +40,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, sessions session.Sessi
 		return
 	}
 
-	log.Println("FOUND:", user.Email, user.Password)
+	//log.Println("FOUND:", user.Email, user.Password)
 
 	if user.Password != password {
 		json.WriteError(w, http.StatusUnauthorized, "invalid password")

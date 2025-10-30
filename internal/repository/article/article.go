@@ -1,30 +1,38 @@
 package article
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/google/uuid"
 )
 
+var (
+	ErrArticleExists   = errors.New("this article is already exists")
+	ErrArticleNotFound = errors.New("article not found")
+)
+
 type ArticleRepository interface {
-	CreateArticle(authorId uuid.UUID, title, content string) (*Article, error)
-	GetArticleById(id uuid.UUID) (*Article, error)
-	GetArticlesByAuthorId(authorId uuid.UUID) ([]*Article, error)
-	GetAllArticles() ([]*Article, error)
-	DeleteArticle(id uuid.UUID) (bool, error)
+	CreateArticle(ctx context.Context, authorId uuid.UUID, title, content string) (*Article, error)
+	GetArticleById(ctx context.Context, id uuid.UUID) (*Article, error)
+	GetArticlesByAuthorId(ctx context.Context, authorId uuid.UUID) ([]*Article, error)
+	GetFeedArticles(ctx context.Context, feed models.Feed) ([]*Article, error)
+	DeleteArticle(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 type Article struct {
-	Id           uuid.UUID `json:"-"`
-	AuthorId     uuid.UUID `json:"-"`
-	Title        string    `json:"title"`
-	Content      string    `json:"content"`
-	CreatedAt    time.Time `json:"-"`
-	Image        string    `json:"image"`
-	AuthorName   string    `json:"author_name"`
-	AuthorAvatar string    `json:"author_avatar"`
+	Id           uuid.UUID
+	AuthorId     uuid.UUID
+	Title        string
+	Content      string
+	CreatedAt    time.Time
+	Image        string
+	AuthorName   string
+	AuthorAvatar string
 }
 
 type InMemoryArticle struct {
@@ -65,14 +73,14 @@ func NewInMemoryArticle() *InMemoryArticle {
 	return articles
 }
 
-func (mem *InMemoryArticle) CreateArticle(authorID uuid.UUID, title, content string) (*Article, error) {
+func (mem *InMemoryArticle) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string) (*Article, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
 	for _, article := range mem.Articles {
 		if article.Title == title && article.AuthorId == authorID {
 
-			return nil, errors.New("article with this title already exists for this author")
+			return nil, fmt.Errorf("%w: %s", ErrArticleExists, authorID)
 		}
 	}
 
@@ -91,7 +99,7 @@ func (mem *InMemoryArticle) CreateArticle(authorID uuid.UUID, title, content str
 	return &copyArticle, nil
 }
 
-func (mem *InMemoryArticle) GetArticleById(articleID uuid.UUID) (*Article, error) {
+func (mem *InMemoryArticle) GetArticleById(ctx context.Context, articleID uuid.UUID) (*Article, error) {
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 
@@ -102,10 +110,10 @@ func (mem *InMemoryArticle) GetArticleById(articleID uuid.UUID) (*Article, error
 		}
 	}
 
-	return nil, errors.New("article not found")
+	return nil, fmt.Errorf("%w: %s", ErrArticleNotFound, articleID)
 }
 
-func (mem *InMemoryArticle) GetArticlesByAuthorId(authorId uuid.UUID) ([]*Article, error) {
+func (mem *InMemoryArticle) GetArticlesByAuthorId(ctx context.Context, authorId uuid.UUID) ([]*Article, error) {
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 
@@ -120,19 +128,19 @@ func (mem *InMemoryArticle) GetArticlesByAuthorId(authorId uuid.UUID) ([]*Articl
 	return result, nil
 }
 
-func (mem *InMemoryArticle) GetAllArticles() ([]*Article, error) {
+func (mem *InMemoryArticle) GetFeedArticles(ctx context.Context, feed models.Feed) ([]*Article, error) {
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 
 	articlesCopy := make([]*Article, len(mem.Articles))
-	for i := range mem.Articles {
-		temp := mem.Articles[i]
+	for i := range 5 {
+		temp := mem.Articles[i+feed.Offset]
 		articlesCopy[i] = &temp
 	}
 	return articlesCopy, nil
 }
 
-func (mem *InMemoryArticle) DeleteArticle(articleID uuid.UUID) (bool, error) {
+func (mem *InMemoryArticle) DeleteArticle(ctx context.Context, articleID uuid.UUID) (bool, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -145,5 +153,5 @@ func (mem *InMemoryArticle) DeleteArticle(articleID uuid.UUID) (bool, error) {
 		}
 	}
 
-	return false, errors.New("article not found")
+	return false, fmt.Errorf("%w: %s", ErrArticleNotFound, articleID)
 }

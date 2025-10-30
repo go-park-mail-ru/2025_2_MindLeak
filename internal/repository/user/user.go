@@ -1,18 +1,25 @@
 package user
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/google/uuid"
 )
 
+var (
+	ErrUserExists   = errors.New("this user is already registered")
+	ErrUserNotFound = errors.New("user not found")
+)
+
 type UserRepository interface {
-	CreateUser(email string, password string, name string) (*User, error)
-	GetUserById(id uuid.UUID) (*User, error)
-	GetUserByEmail(email string) (*User, error)
-	GetAllUsers() ([]*User, error)
-	DeleteUser(id uuid.UUID) (bool, error)
+	CreateUser(ctx context.Context, email string, password string, name string) (*User, error)
+	GetUserById(ctx context.Context, id uuid.UUID) (*User, error)
+	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	GetAllUsers(ctx context.Context) ([]*User, error)
+	DeleteUser(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 type User struct {
@@ -34,13 +41,13 @@ func NewInMemoryUser() *InMemoryUser {
 	}
 }
 
-func (mem *InMemoryUser) CreateUser(email string, password string, name string) (*User, error) {
+func (mem *InMemoryUser) CreateUser(ctx context.Context, email string, password string, name string) (*User, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
 	for _, user := range mem.Users {
 		if user.Email == email {
-			return nil, errors.New("this user is already registered")
+			return nil, fmt.Errorf("%w: %s", ErrUserExists, email)
 		}
 	}
 	user := User{
@@ -55,7 +62,7 @@ func (mem *InMemoryUser) CreateUser(email string, password string, name string) 
 	return &copyUser, nil
 }
 
-func (mem *InMemoryUser) GetUserById(userID uuid.UUID) (*User, error) {
+func (mem *InMemoryUser) GetUserById(ctx context.Context, userID uuid.UUID) (*User, error) {
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 
@@ -65,10 +72,10 @@ func (mem *InMemoryUser) GetUserById(userID uuid.UUID) (*User, error) {
 			return &copyUser, nil
 		}
 	}
-	return nil, errors.New("user not found")
+	return nil, fmt.Errorf("%w: %s", ErrUserNotFound, userID)
 }
 
-func (mem *InMemoryUser) GetUserByEmail(email string) (*User, error) {
+func (mem *InMemoryUser) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 
@@ -78,10 +85,10 @@ func (mem *InMemoryUser) GetUserByEmail(email string) (*User, error) {
 			return &copyUser, nil
 		}
 	}
-	return nil, errors.New("user not found")
+	return nil, fmt.Errorf("%w: %s", ErrUserNotFound, email)
 }
 
-func (mem *InMemoryUser) GetAllUsers() ([]*User, error) {
+func (mem *InMemoryUser) GetAllUsers(ctx context.Context) ([]*User, error) {
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 	usersCopy := make([]*User, len(mem.Users))
@@ -93,7 +100,7 @@ func (mem *InMemoryUser) GetAllUsers() ([]*User, error) {
 	return usersCopy, nil
 }
 
-func (mem *InMemoryUser) DeleteUser(userID uuid.UUID) (bool, error) {
+func (mem *InMemoryUser) DeleteUser(ctx context.Context, userID uuid.UUID) (bool, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -103,5 +110,5 @@ func (mem *InMemoryUser) DeleteUser(userID uuid.UUID) (bool, error) {
 			return true, nil
 		}
 	}
-	return false, errors.New("user not found")
+	return false, fmt.Errorf("%w: %s", ErrUserNotFound, userID)
 }

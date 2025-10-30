@@ -1,17 +1,21 @@
 package session
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/google/uuid"
 )
 
+var ErrSessionNotFound = errors.New("session not found")
+
 type SessionRepository interface {
-	CreateSession() (*Session, error)
-	GetSessionById(sessionId uuid.UUID) (*Session, error)
-	SetSessionUserId(sessionId uuid.UUID, userId uuid.UUID) (*Session, error)
-	DeleteSessionById(sessionId uuid.UUID) (bool, error)
+	CreateSession(ctx context.Context) (*Session, error)
+	GetSessionById(ctx context.Context, sessionId uuid.UUID) (*Session, error)
+	SetSessionUserId(ctx context.Context, sessionId uuid.UUID, userId uuid.UUID) (*Session, error)
+	DeleteSessionById(ctx context.Context, sessionId uuid.UUID) (bool, error)
 }
 
 type Session struct {
@@ -30,7 +34,7 @@ func NewInMemorySession() *InMemorySession {
 	}
 }
 
-func (mem *InMemorySession) CreateSession() (*Session, error) {
+func (mem *InMemorySession) CreateSession(ctx context.Context) (*Session, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -43,7 +47,7 @@ func (mem *InMemorySession) CreateSession() (*Session, error) {
 	return Session, nil
 }
 
-func (mem *InMemorySession) GetSessionById(sessionId uuid.UUID) (*Session, error) {
+func (mem *InMemorySession) GetSessionById(ctx context.Context, sessionId uuid.UUID) (*Session, error) {
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 
@@ -54,11 +58,11 @@ func (mem *InMemorySession) GetSessionById(sessionId uuid.UUID) (*Session, error
 		}
 		return session, nil
 	} else {
-		return nil, errors.New("session not found")
+		return nil, fmt.Errorf("%w: %s", ErrSessionNotFound, sessionId)
 	}
 }
 
-func (mem *InMemorySession) SetSessionUserId(sessionId uuid.UUID, userId uuid.UUID) (*Session, error) {
+func (mem *InMemorySession) SetSessionUserId(ctx context.Context, sessionId uuid.UUID, userId uuid.UUID) (*Session, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -70,11 +74,11 @@ func (mem *InMemorySession) SetSessionUserId(sessionId uuid.UUID, userId uuid.UU
 		}
 		return session, nil
 	} else {
-		return nil, errors.New("session not found")
+		return nil, fmt.Errorf("%w: %s", ErrSessionNotFound, sessionId)
 	}
 }
 
-func (mem *InMemorySession) DeleteSessionById(sessionId uuid.UUID) (bool, error) {
+func (mem *InMemorySession) DeleteSessionById(ctx context.Context, sessionId uuid.UUID) (bool, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -82,6 +86,6 @@ func (mem *InMemorySession) DeleteSessionById(sessionId uuid.UUID) (bool, error)
 		delete(mem.Sessions, sessionId)
 		return true, nil
 	} else {
-		return false, errors.New("session not found")
+		return false, fmt.Errorf("%w: %s", ErrSessionNotFound, sessionId)
 	}
 }

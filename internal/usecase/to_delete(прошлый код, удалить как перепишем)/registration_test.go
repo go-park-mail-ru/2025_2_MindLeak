@@ -1,4 +1,4 @@
-package registration
+package to_delete_прошлый_код__удалить_как_перепишем_
 
 import (
 	"bytes"
