@@ -10,7 +10,7 @@ import (
 var (
 	ErrArticleExists   = errors.New("article is already exists")
 	ErrArticleNotFound = errors.New("article not found")
-	ErrServerError     = errors.New("internal server error")
+	ErrServerError     = errors.New("internal apiserver error")
 )
 
 type Usecase struct {

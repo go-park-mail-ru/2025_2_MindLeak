@@ -15,7 +15,7 @@ var (
 	InvalidName     = errors.New("invalid name")
 	UserExists      = errors.New("user is already registered")
 	UserNotFound    = errors.New("user not found")
-	ServerError     = errors.New("internal server error")
+	ServerError     = errors.New("internal apiserver error")
 	SessionNotFound = errors.New("session not found")
 )
 

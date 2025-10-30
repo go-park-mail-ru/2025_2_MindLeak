@@ -1,10 +1,20 @@
 package main
 
 import (
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/server"
+	"log"
+
+	"github.com/BurntSushi/toml"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/apiserver"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/server"
 	_ "github.com/go-park-mail-ru/2025_2_MindLeak/swagger"
 )
 
 func main() {
-	server.StartServer()
+	config := server.NewConfig()
+	_, err := toml.DecodeFile("configs/apiserver.toml", config)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := apiserver.New(config)
+	s.StartServer()
 }

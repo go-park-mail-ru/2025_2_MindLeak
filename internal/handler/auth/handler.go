@@ -36,7 +36,7 @@ func (h *Handler) handleError(err error) (int, string) {
 		return http.StatusNotFound, "user not found"
 
 	case errors.Is(err, usecase.ServerError):
-		return http.StatusInternalServerError, "internal server error"
+		return http.StatusInternalServerError, "internal apiserver error"
 
 	default:
 		return http.StatusInternalServerError, "unexpected error"
