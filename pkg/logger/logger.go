@@ -16,13 +16,11 @@ type contextKey string
 
 const RequestIDKey contextKey = "requestID"
 
-func Init() *logrus.Logger {
+func init() {
 	Log = logrus.New()
 	Log.SetOutput(os.Stdout)
 	Log.SetLevel(logrus.InfoLevel)
 	Log.SetFormatter(&CustomFormatter{})
-
-	return Log
 }
 
 func logWithContext(ctx context.Context) *logrus.Entry {
