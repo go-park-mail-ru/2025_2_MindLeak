@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
-
 	"github.com/BurntSushi/toml"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/apiserver"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/server"
+	_ "github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	_ "github.com/go-park-mail-ru/2025_2_MindLeak/swagger"
+	"log"
 )
 
 func main() {

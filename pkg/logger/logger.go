@@ -24,6 +24,10 @@ func init() {
 }
 
 func logWithContext(ctx context.Context) *logrus.Entry {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	reqID, _ := ctx.Value(RequestIDKey).(string)
 	if reqID == "" {
 		reqID = "unknown"
