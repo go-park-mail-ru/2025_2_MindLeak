@@ -23,6 +23,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/schema v1.4.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	github.com/mailru/easyjson v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect

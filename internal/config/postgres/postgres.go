@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	_ "github.com/lib/pq"
 	"os"
 )
 
