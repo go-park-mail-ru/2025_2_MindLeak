@@ -11,7 +11,7 @@ import (
 
 func main() {
 	config := server.NewConfig()
-	_, err := toml.DecodeFile("configs/apiserver.toml", config)
+	_, err := toml.DecodeFile("configs/server.toml", config)
 	if err != nil {
 		log.Fatal(err)
 	}
