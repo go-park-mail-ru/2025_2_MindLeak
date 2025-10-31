@@ -1,13 +1,15 @@
 package apiserver
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/postgres"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/redis"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	articleUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/article/usecase"
 	authUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/usecase"
-
-	"github.com/sirupsen/logrus"
 
 	articleHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
 	authHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
@@ -22,13 +24,38 @@ import (
 
 type Server struct {
 	config *server.Config
-	logger *logrus.Logger
 	server http.Server
 }
 
-func New(config *server.Config) *Server {
-	sessionRepo := session.NewInMemorySession()
-	userRepo := user.NewInMemoryUser()
+func New(config *server.Config) (*Server, error) {
+	logger.Info(nil, "Logger initialized")
+	logger.Info(nil, "Server started initializing")
+
+	//INITIALIZE POSTGRES
+	PGConfig := postgres.NewPostgresConfig()
+	DB, err := PGConfig.PGconnect()
+	if err != nil {
+		logger.Error(nil, "Error initializing DB connection")
+		return nil, err
+	}
+
+	logger.Info(nil, "Postgres connection initialized")
+
+	//INITIALIZE REDIS
+	RedisConfig := redis.NewRedisConfig()
+	RedisConn, err := RedisConfig.RedisConnect()
+	if err != nil {
+		logger.Error(nil, "Error initializing Redis connection")
+		return nil, err
+	}
+
+	//INITIALIZE MINIO
+	_ = minio.NewMinioConfig()
+
+	logger.Info(nil, "Redis connection initialized")
+
+	sessionRepo := session.NewRedisSessionManager(RedisConn)
+	userRepo := user.NewPostgresUser(DB)
 	articleRepo := article.NewInMemoryArticle()
 
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo)
@@ -49,12 +76,11 @@ func New(config *server.Config) *Server {
 
 	return &Server{
 		config: config,
-		logger: logrus.New(),
 		server: server,
-	}
+	}, nil
 }
 
 func (s *Server) StartServer() {
-	s.logger.Info("starting apiserver")
+	logger.Info(nil, "Starting MindLeak API server")
 	s.server.ListenAndServe()
 }

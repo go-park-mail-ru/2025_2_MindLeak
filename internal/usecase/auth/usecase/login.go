@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/google/uuid"
 )
 
@@ -21,6 +22,7 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 
 	user, err := u.userRepo.GetUserByEmail(ctx, userModel.Email)
 	if err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("get auth usecase: %w", err)
 	}
 
@@ -30,11 +32,13 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 
 	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("get auth usecase: %w", err)
 	}
 
 	_, err = u.sessionRepo.SetSessionUserId(ctx, session.SessionId, user.Id)
 	if err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("get auth usecase: %w", err)
 	}
 

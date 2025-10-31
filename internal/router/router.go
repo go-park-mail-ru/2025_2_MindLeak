@@ -11,7 +11,9 @@ import (
 func NewRouter(articleHandler *article.Handler, authHandler *auth.Handler) *mux.Router {
 	router := mux.NewRouter()
 
+	router.Use(middleware.RequestIDMiddleware)
 	router.Use(middleware.CORSMiddleware)
+	//router.Use(middleware.AuthMiddleware) Потом подключить к нужным ручкам
 
 	router.HandleFunc("/feed", articleHandler.Feed).Methods("GET")
 	router.HandleFunc("/registration", authHandler.Registration).Methods("POST")

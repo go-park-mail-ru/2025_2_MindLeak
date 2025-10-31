@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
@@ -15,12 +16,14 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
 		json.WriteError(w, http.StatusUnauthorized, err.Error())
+		logger.Error(ctx, err.Error(), nil)
 		return
 	}
 
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
+		logger.Error(ctx, err.Error(), nil)
 		return
 	}
 
@@ -28,6 +31,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
+		logger.Error(ctx, err.Error(), nil)
 		return
 	}
 
@@ -41,6 +45,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
+		logger.Error(ctx, err.Error(), nil)
 		return
 	}
 

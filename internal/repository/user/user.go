@@ -2,9 +2,11 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"fmt"
-	"sync"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 
 	"github.com/google/uuid"
 )
@@ -14,101 +16,115 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 )
 
+const (
+	CreateUserQuery     = `INSERT INTO user (email, password, name, avatar) VALUES ($1, $2, $3, $4)`
+	GetUserByIdQuery    = `SELECT id, email, password, name, avatar FROM user WHERE id=$1`
+	GetUserByEmailQuery = `SELECT id, email, password, name, avatar FROM user WHERE email=$1`
+	GetAllUsersQuery    = `SELECT id, email, password, name, avatar FROM user`
+	DeleteUserQuery     = `DELETE FROM user WHERE id=$1`
+)
+
 type UserRepository interface {
-	CreateUser(ctx context.Context, email string, password string, name string) (*User, error)
-	GetUserById(ctx context.Context, id uuid.UUID) (*User, error)
-	GetUserByEmail(ctx context.Context, email string) (*User, error)
-	GetAllUsers(ctx context.Context) ([]*User, error)
+	CreateUser(ctx context.Context, email string, password string, name string) (models.User, error)
+	GetUserById(ctx context.Context, id uuid.UUID) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
+	GetAllUsers(ctx context.Context) ([]models.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
-type User struct {
-	Id       uuid.UUID `json:"-"`
-	Email    string    `json:"email"`
-	Password string    `json:"-"`
-	Name     string    `json:"name"`
-	Avatar   string    `json:"avatar"`
+type PostgresUser struct {
+	db *sql.DB
 }
 
-type InMemoryUser struct {
-	Users []User
-	mu    sync.RWMutex
+func NewPostgresUser(db *sql.DB) *PostgresUser {
+	return &PostgresUser{db: db}
 }
 
-func NewInMemoryUser() *InMemoryUser {
-	return &InMemoryUser{
-		Users: make([]User, 0),
+func (p *PostgresUser) CreateUser(ctx context.Context, email string, password string, name string) (models.User, error) {
+	var user models.User
+
+	defaultAvatar := minio.DefaultAvatarURL
+
+	err := p.db.QueryRowContext(ctx,
+		CreateUserQuery+" RETURNING id, email, password, name, avatar",
+		email, password, name, defaultAvatar,
+	).Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar)
+
+	if err != nil {
+		logger.Error(ctx, "Error creating user: %v", err)
+		return models.User{}, err
 	}
+
+	return user, nil
 }
 
-func (mem *InMemoryUser) CreateUser(ctx context.Context, email string, password string, name string) (*User, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
+func (p *PostgresUser) GetUserById(ctx context.Context, userID uuid.UUID) (models.User, error) {
+	var user models.User
 
-	for _, user := range mem.Users {
-		if user.Email == email {
-			return nil, fmt.Errorf("%w: %s", ErrUserExists, email)
+	err := p.db.QueryRowContext(ctx, GetUserByIdQuery, userID).Scan(
+		&user.Id,
+		&user.Email,
+		&user.Password,
+		&user.Name,
+		&user.Avatar,
+	)
+
+	if err != nil {
+		logger.Error(ctx, "Error getting user: %v", err)
+		return models.User{}, err
+	}
+
+	return user, nil
+}
+
+func (p *PostgresUser) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+	var user models.User
+
+	err := p.db.QueryRowContext(ctx, GetUserByEmailQuery, email).Scan(
+		&user.Id,
+		&user.Email,
+		&user.Password,
+		&user.Name,
+		&user.Avatar,
+	)
+
+	if err != nil {
+		logger.Error(ctx, "Error getting user: %v", err)
+		return models.User{}, err
+	}
+
+	return user, nil
+}
+
+func (p *PostgresUser) GetAllUsers(ctx context.Context) ([]models.User, error) {
+	users := make([]models.User, 0)
+
+	rows, err := p.db.QueryContext(ctx, GetAllUsersQuery)
+	if err != nil {
+		logger.Error(ctx, "Error getting all users: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		err = rows.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar)
+		if err != nil {
+			logger.Error(ctx, "Error getting all users: %v", err)
 		}
+		users = append(users, user)
 	}
-	user := User{
-		Id:       uuid.New(),
-		Email:    email,
-		Password: password,
-		Name:     name,
-		Avatar:   "https://sun9-88.userapi.com/s/v1/ig2/P_e5HW2lWX3ZxayBg73NnzbHzyhxFCXtBseRjSrN_NbemNC78OpkeYfJeXcTOXqyR8NhSwizZKqJEq_R8PhQo607.jpg?quality=95&as=32x40,48x60,72x90,108x135,160x200,240x300,360x450,480x600,540x675,640x800,720x900,1080x1350,1280x1600,1440x1800,1620x2025&from=bu&cs=1620x0",
-	}
-	mem.Users = append(mem.Users, user)
-	copyUser := user
-	return &copyUser, nil
+
+	return users, nil
+
 }
 
-func (mem *InMemoryUser) GetUserById(ctx context.Context, userID uuid.UUID) (*User, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
-
-	for i := range mem.Users {
-		if mem.Users[i].Id == userID {
-			copyUser := mem.Users[i]
-			return &copyUser, nil
-		}
-	}
-	return nil, fmt.Errorf("%w: %s", ErrUserNotFound, userID)
-}
-
-func (mem *InMemoryUser) GetUserByEmail(ctx context.Context, email string) (*User, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
-
-	for i := range mem.Users {
-		if mem.Users[i].Email == email {
-			copyUser := mem.Users[i]
-			return &copyUser, nil
-		}
-	}
-	return nil, fmt.Errorf("%w: %s", ErrUserNotFound, email)
-}
-
-func (mem *InMemoryUser) GetAllUsers(ctx context.Context) ([]*User, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
-	usersCopy := make([]*User, len(mem.Users))
-	for i := range mem.Users {
-		temp := mem.Users[i]
-		usersCopy[i] = &temp
+func (p *PostgresUser) DeleteUser(ctx context.Context, id uuid.UUID) (bool, error) {
+	_, err := p.db.ExecContext(ctx, DeleteUserQuery, id)
+	if err != nil {
+		logger.Error(ctx, "Error deleting user: %v", err)
+		return false, err
 	}
 
-	return usersCopy, nil
-}
-
-func (mem *InMemoryUser) DeleteUser(ctx context.Context, userID uuid.UUID) (bool, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
-
-	for idx, user := range mem.Users {
-		if user.Id == userID {
-			mem.Users = append(mem.Users[:idx], mem.Users[idx+1:]...)
-			return true, nil
-		}
-	}
-	return false, fmt.Errorf("%w: %s", ErrUserNotFound, userID)
+	return true, nil
 }

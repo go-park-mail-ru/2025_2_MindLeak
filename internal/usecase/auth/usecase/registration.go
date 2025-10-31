@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/google/uuid"
 	"regexp"
 	"strings"
@@ -14,29 +15,35 @@ import (
 func (u *Usecase) Registration(ctx context.Context, user models.User) (dto.RegisteredUserDto, uuid.UUID, error) {
 
 	if err := validateEmail(user.Email); err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate email: %w", err)
 	}
 
 	if err := validatePassword(user.Password); err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate password: %w", err)
 	}
 
 	if err := validateName(user.Name); err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate name: %w", err)
 	}
 
 	newUser, err := u.userRepo.CreateUser(ctx, user.Email, user.Password, user.Name)
 	if err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("create user: %w", err)
 	}
 
 	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("create session: %w", err)
 	}
 
 	_, err = u.sessionRepo.SetSessionUserId(ctx, session.SessionId, newUser.Id)
 	if err != nil {
+		logger.Error(ctx, err.Error(), nil)
 		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("set session: %w", err)
 	}
 
