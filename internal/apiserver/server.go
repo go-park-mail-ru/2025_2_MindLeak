@@ -65,7 +65,7 @@ func New(config *server.Config) (*Server, error) {
 	authHandler := authHandler.NewAuthHandler(authUsecase)
 
 	mux := router.NewRouter(articleHandler, authHandler)
-	handler := middleware.CORSMiddleware(mux)
+	handler := middleware.RecoverMiddleware(mux)
 
 	server := http.Server{
 		Addr:         config.BindAddr,
