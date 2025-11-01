@@ -46,6 +46,7 @@ func NewInMemoryArticle() *InMemoryArticle {
 	}
 	authorID := uuid.New()
 
+	//TODO: Контекст просто, чтоб работало. Потом пробрось нормальный
 	ctx := context.Background()
 
 	_, _ = articles.CreateArticle(ctx, authorID,
@@ -135,6 +136,7 @@ func (mem *InMemoryArticle) GetFeedArticles(ctx context.Context, feed models.Fee
 	defer mem.mu.RUnlock()
 
 	articlesCopy := make([]*Article, len(mem.Articles))
+	//@AlexOFF1 бро, офсет был 5, а элементов в списке 6. Один срезал - паника. Надо внимательнее с этим, когда будешь на базу переписывать.
 	for i := range 6 {
 		temp := mem.Articles[i+feed.Offset]
 		articlesCopy[i] = &temp
