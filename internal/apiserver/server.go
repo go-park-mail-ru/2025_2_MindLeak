@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/postgres"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/redis"
@@ -28,31 +29,31 @@ type Server struct {
 }
 
 func New(config *server.Config) (*Server, error) {
-	logger.Info(nil, "Logger initialized")
-	logger.Info(nil, "Server started initializing")
+	logger.Info(nil, "Logger initialized", nil)
+	logger.Info(nil, "Server started initializing", nil)
 
 	//INITIALIZE POSTGRES
 	PGConfig := postgres.NewPostgresConfig()
 	DB, err := PGConfig.PGconnect()
 	if err != nil {
-		logger.Error(nil, "Error initializing DB connection")
+		logger.Error(nil, "Error initializing DB connection", nil)
 		return nil, err
 	}
 
-	logger.Info(nil, "Postgres connection initialized")
+	logger.Info(nil, "Postgres connection initialized", nil)
 
 	//INITIALIZE REDIS
 	RedisConfig := redis.NewRedisConfig()
 	RedisConn, err := RedisConfig.RedisConnect()
 	if err != nil {
-		logger.Error(nil, "Error initializing Redis connection")
+		logger.Error(nil, "Error initializing Redis connection", nil)
 		return nil, err
 	}
 
 	//INITIALIZE MINIO
 	_ = minio.NewMinioConfig()
 
-	logger.Info(nil, "Redis connection initialized")
+	logger.Info(nil, "Redis connection initialized", nil)
 
 	sessionRepo := session.NewRedisSessionManager(RedisConn)
 	userRepo := user.NewPostgresUser(DB)
@@ -81,10 +82,10 @@ func New(config *server.Config) (*Server, error) {
 }
 
 func (s *Server) StartServer() {
-	logger.Info(nil, "Starting MindLeak API server on %s", s.server.Addr)
+	logger.Info(nil, fmt.Sprintf("Starting MindLeak API server on %s", s.server.Addr))
 
 	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Error(nil, "Server stopped with error: %v", err)
+		logger.Error(nil, fmt.Sprintf("Server stopped with error: %v", err), nil)
 	} else {
 		logger.Info(nil, "Server stopped gracefully", nil)
 	}
