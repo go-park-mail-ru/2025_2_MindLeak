@@ -135,13 +135,18 @@ func (mem *InMemoryArticle) GetFeedArticles(ctx context.Context, feed models.Fee
 	mem.mu.RLock()
 	defer mem.mu.RUnlock()
 
-	articlesCopy := make([]*Article, len(mem.Articles))
-	//@AlexOFF1 бро, офсет был 5, а элементов в списке 6. Один срезал - паника. Надо внимательнее с этим, когда будешь на базу переписывать.
-	for i := range 6 {
-		temp := mem.Articles[i+feed.Offset]
-		articlesCopy[i] = &temp
+	end := feed.Offset + 6
+	if end > len(mem.Articles) {
+		end = len(mem.Articles)
 	}
-	return articlesCopy, nil
+
+	out := make([]*Article, 0, end-feed.Offset)
+	for i := feed.Offset; i < end; i++ {
+		a := mem.Articles[i]
+		out = append(out, &a)
+	}
+
+	return out, nil
 }
 
 func (mem *InMemoryArticle) DeleteArticle(ctx context.Context, articleID uuid.UUID) (bool, error) {

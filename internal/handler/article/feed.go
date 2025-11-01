@@ -48,8 +48,6 @@ func (h *Handler) Feed(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.Write(w, http.StatusOK, feedOutputDto); err != nil {
 		logger.Error(ctx, "[article.Feed] failed to write response: %v", err)
-		code, msg := h.handleError(err)
-		json.WriteError(w, code, msg)
 		return
 	}
 

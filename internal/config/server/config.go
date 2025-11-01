@@ -11,7 +11,7 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		BindAddr:     ":8090",
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 60 * time.Second,
 	}
 }

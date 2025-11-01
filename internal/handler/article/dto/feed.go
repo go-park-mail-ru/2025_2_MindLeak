@@ -1,8 +1,8 @@
 package dto
 
-//сюда кладем query параметры get-запроса
+// сюда кладем query параметры get-запроса
 type FeedInputDTO struct {
-	Offset int `json:"offset"`
+	Offset int `schema:"offset"`
 }
 
 type FeedOutputDTO struct {
