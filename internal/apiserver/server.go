@@ -46,7 +46,7 @@ func New(config *server.Config) (*Server, error) {
 	RedisConn, err := RedisConfig.RedisConnect()
 	if err != nil {
 		logger.Error(nil, "Error initializing Redis connection")
-		//return nil, err
+		return nil, err
 	}
 
 	//INITIALIZE MINIO
