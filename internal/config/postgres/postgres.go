@@ -12,6 +12,11 @@ type PostgresConfig struct {
 }
 
 func NewPostgresConfig() *PostgresConfig {
+	//err := godotenv.Load(".env")
+	//if err != nil {
+	//	log.Fatalf("Ошибка загрузки .env файла: %v", err)
+	//}
+
 	return &PostgresConfig{
 		dsn: os.Getenv("DATABASE_URL"),
 	}
