@@ -4,7 +4,10 @@ import (
 	"os"
 )
 
-const DefaultAvatarURL = "http://62.109.19.84:9000/mindleak-bucket/defaultAvatar.jpg"
+const (
+	DefaultAvatarURL = "http://62.109.19.84:9000/mindleak-bucket/defaultAvatar.jpg"
+	DefaultCoverURL  = "http://62.109.19.84:9000/mindleak-bucket/cover-pic.jpg"
+)
 
 type MinioConfig struct {
 	MinioUser     string
