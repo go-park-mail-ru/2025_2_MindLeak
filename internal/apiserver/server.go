@@ -81,6 +81,11 @@ func New(config *server.Config) (*Server, error) {
 }
 
 func (s *Server) StartServer() {
-	logger.Info(nil, "Starting MindLeak API server")
-	s.server.ListenAndServe()
+	logger.Info(nil, "Starting MindLeak API server on %s", s.server.Addr)
+
+	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Error(nil, "Server stopped with error: %v", err)
+	} else {
+		logger.Info(nil, "Server stopped gracefully", nil)
+	}
 }
