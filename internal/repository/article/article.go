@@ -2,6 +2,7 @@ package article
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 var (
@@ -18,10 +18,10 @@ var (
 )
 
 type ArticleRepository interface {
-	CreateArticle(ctx context.Context, authorId uuid.UUID, title, content string) (*Article, error)
-	GetArticleById(ctx context.Context, id uuid.UUID) (*Article, error)
-	GetArticlesByAuthorId(ctx context.Context, authorId uuid.UUID) ([]*Article, error)
-	GetFeedArticles(ctx context.Context, feed models.Feed) ([]*Article, error)
+	CreateArticle(ctx context.Context, authorId uuid.UUID, title, content string) (*models.Article, error)
+	GetArticleById(ctx context.Context, id uuid.UUID) (*models.Article, error)
+	GetArticlesByAuthorId(ctx context.Context, authorId uuid.UUID) ([]*models.Article, error)
+	GetFeedArticles(ctx context.Context, feed models.Feed) ([]*models.Article, error)
 	DeleteArticle(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
@@ -37,10 +37,10 @@ type Article struct {
 }
 
 type ArticleRepo struct {
-	db *pgxpool.Pool
+	db *sql.DB
 }
 
-func NewArticleRepo(db *pgxpool.Pool) *ArticleRepo {
+func NewArticleRepo(db *sql.DB) *ArticleRepo {
 	return &ArticleRepo{db: db}
 }
 
@@ -52,7 +52,7 @@ func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, tit
 	`
 
 	var a models.Article
-	err := r.db.QueryRow(ctx, query, authorID, title, content).Scan(
+	err := r.db.QueryRowContext(ctx, query, authorID, title, content).Scan(
 		&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.PublishedAt, &a.Status,
 	)
 	if err != nil {
@@ -78,7 +78,7 @@ func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (*models
 
 	var a models.Article
 	var authorName, displayName, avatarURL string
-	err := r.db.QueryRow(ctx, query, id).Scan(
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.PublishedAt, &a.PublishedAt, &a.Status,
 		&authorName, &displayName, &avatarURL,
 	)
@@ -109,7 +109,7 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 		ORDER BY a.created_at DESC
 	`
 
-	rows, err := r.db.Query(ctx, query, authorID)
+	rows, err := r.db.QueryContext(ctx, query, authorID)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 		OFFSET $1 LIMIT 5
 	`
 
-	rows, err := r.db.Query(ctx, query, feed.Offset)
+	rows, err := r.db.QueryContext(ctx, query, feed.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (r *ArticleRepo) Update(ctx context.Context, article *models.Article) error
     `
 
 	var updatedAt time.Time
-	err := r.db.QueryRow(ctx, query,
+	err := r.db.QueryRowContext(ctx, query,
 		article.Title,
 		article.Content,
 		article.ImageURL,
@@ -216,11 +216,18 @@ func (r *ArticleRepo) Update(ctx context.Context, article *models.Article) error
 
 func (r *ArticleRepo) DeleteArticle(ctx context.Context, id uuid.UUID) (bool, error) {
 	query := `DELETE FROM article WHERE article_id = $1`
-	cmd, err := r.db.Exec(ctx, query, id)
+
+	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("delete article: %w", err)
 	}
-	return cmd.RowsAffected() > 0, nil
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("delete article rows affected: %w", err)
+	}
+
+	return rowsAffected > 0, nil
 }
 
 func (r *ArticleRepo) loadAuthor(ctx context.Context, a *models.Article) error {
@@ -232,7 +239,7 @@ func (r *ArticleRepo) loadAuthor(ctx context.Context, a *models.Article) error {
 	`
 
 	var authorName, displayName, avatarURL string
-	err := r.db.QueryRow(ctx, query, a.AuthorID).Scan(&authorName, &displayName, &avatarURL)
+	err := r.db.QueryRowContext(ctx, query, a.AuthorID).Scan(&authorName, &displayName, &avatarURL)
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
@@ -15,23 +16,54 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
 		logger.Error(ctx, "GetCookie: %v", err)
-		///
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
 		return
 	}
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
 		logger.Error(ctx, "Parse: %v", err)
-		///
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
 		return
 	}
 
-	if myProfile, err := h.Usecase.ShowProfile(ctx, sessionID); err != nil {
+	vars := mux.Vars(r)
+	var targetID uuid.UUID
+	if idStr, ok := vars["id"]; ok && idStr != "" {
+		targetID, err = uuid.Parse(idStr)
+		if err != nil {
+			json.WriteError(w, http.StatusBadRequest, "invalid profile id")
+			return
+		}
+	} else {
+		session, err := h.Usecase.GetSession(ctx, sessionID)
+		if err != nil {
+			json.WriteError(w, http.StatusUnauthorized, "invalid session")
+			return
+		}
+		targetID = session.UserId
+	}
+
+	prof, err := h.Usecase.ShowProfile(ctx, targetID)
+	if err != nil {
 		logger.Error(ctx, "ShowProfile: %v", err)
-		///
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
 		return
 	}
 
-	profileOutDto := dto.ProfileOutputDto{}
+	profileOutDto := dto.ProfileOutputDto{
+		Phone:       prof.Phone,
+		Country:     prof.Country,
+		Language:    prof.Language,
+		Sex:         prof.Sex,
+		DateOfBirth: prof.DateOfBirth,
+		Age:         prof.Age,
+		CoverURL:    prof.CoverURL,
+		Name:        prof.Name,
+		AvatarURL:   prof.Avatar,
+	}
 
 	err = json.Write(w, http.StatusOK, profileOutDto)
 	if err != nil {

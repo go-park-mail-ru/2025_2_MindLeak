@@ -6,7 +6,6 @@ import (
 )
 
 type ProfileDto struct {
-	User        *models.User
 	Phone       string
 	Country     string
 	Language    string
@@ -15,4 +14,8 @@ type ProfileDto struct {
 	Age         int
 	CoverURL    string
 	CreatedAt   time.Time
+
+	Name   string
+	Avatar string
+	Email  string
 }

@@ -5,17 +5,21 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/postgres"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/redis"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	articleUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/article/usecase"
 	authUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/usecase"
+	profileUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/profile/usecase"
 
 	articleHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
 	authHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
+	profileHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/profile"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/server"
@@ -50,22 +54,25 @@ func New(config *server.Config) (*Server, error) {
 		return nil, err
 	}
 
+	logger.Info(nil, "Redis connection initialized", nil)
+
 	//INITIALIZE MINIO
 	_ = minio.NewMinioConfig()
 
-	logger.Info(nil, "Redis connection initialized", nil)
-
 	sessionRepo := session.NewRedisSessionManager(RedisConn)
 	userRepo := user.NewPostgresUser(DB)
-	articleRepo := article.NewInMemoryArticle()
+	articleRepo := article.NewArticleRepo(DB)
+	profileRepo := profile.NewPostgresProfile(DB)
 
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo)
 	authUsecase := authUsecase.NewAuthUsecase(userRepo, sessionRepo)
+	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)
 	authHandler := authHandler.NewAuthHandler(authUsecase)
+	profileHandler := profileHandler.NewProfileHandler(profileUsecase)
 
-	mux := router.NewRouter(articleHandler, authHandler)
+	mux := router.NewRouter(articleHandler, authHandler, profileHandler)
 	handler := middleware.RecoverMiddleware(mux)
 
 	server := http.Server{

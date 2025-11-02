@@ -38,6 +38,18 @@ func (h *Handler) handleError(err error) (int, string) {
 	case errors.Is(err, usecase.ServerError):
 		return http.StatusInternalServerError, "internal apiserver error"
 
+	case errors.Is(err, usecase.SessionNotCreated):
+		return http.StatusUnauthorized, "session not created"
+	case errors.Is(err, usecase.SessionNotSet):
+		return http.StatusUnauthorized, "session not set"
+	case errors.Is(err, usecase.UserNotCreated):
+		return http.StatusUnauthorized, "user not created"
+	case errors.Is(err, usecase.UserNotDeleted):
+		return http.StatusBadRequest, "user not deleted"
+	case errors.Is(err, usecase.UserNotGet):
+		return http.StatusUnauthorized, "user not get"
+	case errors.Is(err, usecase.UserNotUpdated):
+		return http.StatusBadRequest, "user not updated"
 	default:
 		return http.StatusInternalServerError, "unexpected error"
 	}

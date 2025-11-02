@@ -16,12 +16,11 @@ const (
 type Profile struct {
 	Id          uuid.UUID
 	UserID      uuid.UUID
-	User        *User
 	Phone       string
 	Country     string
 	Language    string
 	Sex         Sex
-	DateOfBirth string
+	DateOfBirth time.Time
 	Age         int
 	CoverURL    string
 	CreatedAt   time.Time

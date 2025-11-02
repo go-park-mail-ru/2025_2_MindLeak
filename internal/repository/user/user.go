@@ -14,6 +14,10 @@ import (
 var (
 	ErrUserExists   = errors.New("this user is already registered")
 	ErrUserNotFound = errors.New("user not found")
+	ErrCreatingUser = errors.New("error creating user")
+	ErrGettingUser  = errors.New("error getting user")
+	ErrDeletingUser = errors.New("error deleting user")
+	ErrUpdatingUser = errors.New("error updating user")
 )
 
 const (
@@ -22,6 +26,14 @@ const (
 	GetUserByEmailQuery = `SELECT id, email, password, name, avatar FROM user WHERE email=$1`
 	GetAllUsersQuery    = `SELECT id, email, password, name, avatar FROM user`
 	DeleteUserQuery     = `DELETE FROM user WHERE id=$1`
+	UpdateUserQuery     = `
+    UPDATE "user"
+    SET
+        name = $2,
+        avatar = $3,
+        updated_at = NOW()
+    WHERE id = $1
+    RETURNING id, email, password, name, avatar;`
 )
 
 type UserRepository interface {
@@ -30,6 +42,7 @@ type UserRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (models.User, error)
 	GetAllUsers(ctx context.Context) ([]models.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) (bool, error)
+	UpdateUser(ctx context.Context, oldUser models.User) (models.User, error)
 }
 
 type PostgresUser struct {
@@ -52,7 +65,7 @@ func (p *PostgresUser) CreateUser(ctx context.Context, email string, password st
 
 	if err != nil {
 		logger.Error(ctx, "Error creating user: %v", err)
-		return models.User{}, err
+		return models.User{}, ErrCreatingUser
 	}
 
 	return user, nil
@@ -71,7 +84,7 @@ func (p *PostgresUser) GetUserById(ctx context.Context, userID uuid.UUID) (model
 
 	if err != nil {
 		logger.Error(ctx, "Error getting user: %v", err)
-		return models.User{}, err
+		return models.User{}, ErrGettingUser
 	}
 
 	return user, nil
@@ -90,7 +103,7 @@ func (p *PostgresUser) GetUserByEmail(ctx context.Context, email string) (models
 
 	if err != nil {
 		logger.Error(ctx, "Error getting user: %v", err)
-		return models.User{}, err
+		return models.User{}, ErrGettingUser
 	}
 
 	return user, nil
@@ -102,7 +115,7 @@ func (p *PostgresUser) GetAllUsers(ctx context.Context) ([]models.User, error) {
 	rows, err := p.db.QueryContext(ctx, GetAllUsersQuery)
 	if err != nil {
 		logger.Error(ctx, "Error getting all users: %v", err)
-		return nil, err
+		return nil, ErrGettingUser
 	}
 	defer rows.Close()
 
@@ -111,6 +124,7 @@ func (p *PostgresUser) GetAllUsers(ctx context.Context) ([]models.User, error) {
 		err = rows.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar)
 		if err != nil {
 			logger.Error(ctx, "Error getting all users: %v", err)
+			return nil, ErrGettingUser
 		}
 		users = append(users, user)
 	}
@@ -123,8 +137,31 @@ func (p *PostgresUser) DeleteUser(ctx context.Context, id uuid.UUID) (bool, erro
 	_, err := p.db.ExecContext(ctx, DeleteUserQuery, id)
 	if err != nil {
 		logger.Error(ctx, "Error deleting user: %v", err)
-		return false, err
+		return false, ErrDeletingUser
 	}
 
 	return true, nil
+}
+
+func (p *PostgresUser) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
+	var updated models.User
+
+	err := p.db.QueryRowContext(ctx, UpdateUserQuery,
+		user.Id,
+		user.Name,
+		user.Avatar,
+	).Scan(
+		&updated.Id,
+		&updated.Email,
+		&updated.Password,
+		&updated.Name,
+		&updated.Avatar,
+	)
+
+	if err != nil {
+		logger.Error(ctx, "Error updating user: %v", err)
+		return models.User{}, ErrUpdatingUser
+	}
+
+	return updated, nil
 }

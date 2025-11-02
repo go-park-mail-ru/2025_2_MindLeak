@@ -11,7 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
-var ErrSessionNotFound = errors.New("session not found")
+var (
+	ErrSessionNotFound = errors.New("session not found")
+	ErrCreatingSession = errors.New("failed to create session")
+	ErrSettingSession  = errors.New("setting session failed")
+)
 
 type SessionRepository interface {
 	CreateSession(ctx context.Context) (models.Session, error)
@@ -38,7 +42,7 @@ func (s *RedisSessionManager) CreateSession(ctx context.Context) (models.Session
 	)
 	if err != nil {
 		logger.Error(ctx, "Error creating empty session: %v", err)
-		return models.Session{}, err
+		return models.Session{}, ErrCreatingSession
 	}
 
 	logger.Info(ctx, "🆕 Empty session %s created", sessionID)
@@ -58,7 +62,7 @@ func (s *RedisSessionManager) GetSessionById(ctx context.Context, sessionId uuid
 	}
 	if err != nil {
 		logger.Error(ctx, "Error getting session %s: %v", sessionId.String(), err)
-		return models.Session{}, err
+		return models.Session{}, ErrSessionNotFound
 	}
 
 	var userID uuid.UUID
@@ -66,7 +70,7 @@ func (s *RedisSessionManager) GetSessionById(ctx context.Context, sessionId uuid
 		userID, err = uuid.Parse(value)
 		if err != nil {
 			logger.Error(ctx, "Invalid UUID stored in session %s: %v", sessionId.String(), err)
-			return models.Session{}, err
+			return models.Session{}, ErrSessionNotFound
 		}
 	}
 
@@ -96,7 +100,7 @@ func (s *RedisSessionManager) SetSessionUserId(ctx context.Context, sessionId uu
 	)
 	if err != nil {
 		logger.Error(ctx, "Error setting user ID in session %s: %v", sessionId.String(), err)
-		return models.Session{}, err
+		return models.Session{}, ErrSettingSession
 	}
 
 	logger.Info(ctx, "User %s linked to session %s", userId.String(), sessionId.String())
