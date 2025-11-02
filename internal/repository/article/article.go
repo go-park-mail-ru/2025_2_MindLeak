@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 var (
@@ -35,132 +36,248 @@ type Article struct {
 	AuthorAvatar string
 }
 
-type InMemoryArticle struct {
-	Articles []Article
-	mu       sync.RWMutex
+type ArticleRepo struct {
+	db *pgxpool.Pool
 }
 
-func NewInMemoryArticle() *InMemoryArticle {
-	articles := &InMemoryArticle{
-		Articles: make([]Article, 0),
+func NewArticleRepo(db *pgxpool.Pool) *ArticleRepo {
+	return &ArticleRepo{db: db}
+}
+
+// func NewInMemoryArticle() *InMemoryArticle {
+// 	articles := &InMemoryArticle{
+// 		Articles: make([]Article, 0),
+// 	}
+// 	authorID := uuid.New()
+
+// 	//TODO: Контекст просто, чтоб работало. Потом пробрось нормальный
+// 	ctx := context.Background()
+
+// 	_, _ = articles.CreateArticle(ctx, authorID,
+// 		"ИИ в 2025: Как нейросети меняют бизнес-процессы",
+// 		"Искусственный интеллект в 2025 году стал неотъемлемой частью бизнеса...")
+
+// 	_, _ = articles.CreateArticle(ctx, authorID,
+// 		"Как российский стартап привлёк $10M на рынке SaaS",
+// 		"Российский стартап CloudPeak разработал SaaS-платформу...")
+
+// 	_, _ = articles.CreateArticle(ctx, authorID,
+// 		"Тренды контент-маркетинга: Что работает в 2025 году",
+// 		"Контент-маркетинг в 2025 году переживает новый виток...")
+
+// 	_, _ = articles.CreateArticle(ctx, authorID,
+// 		"Почему 80% стартапов терпят неудачу в первый год",
+// 		"Запуск стартапа — это всегда риск...")
+
+// 	_, _ = articles.CreateArticle(ctx, authorID,
+// 		"Как мы увеличили конверсию на 30% с помощью UX",
+// 		"Компания BrightPath переработала интерфейс...")
+
+// 	_, _ = articles.CreateArticle(ctx, authorID,
+// 		"Экспериментальный сверхдлинный заголовок статьи, в котором мы попробуем уместить сразу и суть, и интригу, и даже немного юмора, чтобы проверить, как фронтенд справится с рендерингом текста...",
+// 		`Это тестовое содержимое статьи, которое специально сделано очень длинным, чтобы проверить работу фронтенда с большими объёмами текста... (длинный текст)`)
+
+// 	return articles
+// }
+
+func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string) (*models.Article, error) {
+	query := `
+		INSERT INTO article (author_id, title, content, status)
+		VALUES ($1, $2, $3, 'draft')
+		RETURNING article_id, author_id, title, content, created_at, published_at, status
+	`
+
+	var a models.Article
+	err := r.db.QueryRow(ctx, query, authorID, title, content).Scan(
+		&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.PublishedAt, &a.Status,
+	)
+	if err != nil {
+		return nil, err
 	}
-	authorID := uuid.New()
 
-	//TODO: Контекст просто, чтоб работало. Потом пробрось нормальный
-	ctx := context.Background()
+	if err := r.loadAuthor(ctx, &a); err != nil {
+		return nil, err
+	}
 
-	_, _ = articles.CreateArticle(ctx, authorID,
-		"ИИ в 2025: Как нейросети меняют бизнес-процессы",
-		"Искусственный интеллект в 2025 году стал неотъемлемой частью бизнеса...")
-
-	_, _ = articles.CreateArticle(ctx, authorID,
-		"Как российский стартап привлёк $10M на рынке SaaS",
-		"Российский стартап CloudPeak разработал SaaS-платформу...")
-
-	_, _ = articles.CreateArticle(ctx, authorID,
-		"Тренды контент-маркетинга: Что работает в 2025 году",
-		"Контент-маркетинг в 2025 году переживает новый виток...")
-
-	_, _ = articles.CreateArticle(ctx, authorID,
-		"Почему 80% стартапов терпят неудачу в первый год",
-		"Запуск стартапа — это всегда риск...")
-
-	_, _ = articles.CreateArticle(ctx, authorID,
-		"Как мы увеличили конверсию на 30% с помощью UX",
-		"Компания BrightPath переработала интерфейс...")
-
-	_, _ = articles.CreateArticle(ctx, authorID,
-		"Экспериментальный сверхдлинный заголовок статьи, в котором мы попробуем уместить сразу и суть, и интригу, и даже немного юмора, чтобы проверить, как фронтенд справится с рендерингом текста...",
-		`Это тестовое содержимое статьи, которое специально сделано очень длинным, чтобы проверить работу фронтенда с большими объёмами текста... (длинный текст)`)
-
-	return articles
+	return &a, nil
 }
 
-func (mem *InMemoryArticle) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string) (*Article, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
+func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (*models.Article, error) {
+	query := `
+		SELECT a.article_id, a.author_id, a.title, a.content, a.created_at, a.published_at, a.status,
+		       u.login, up.display_name, up.avatar_url
+		FROM article a
+		JOIN user u ON a.author_id = u.user_id
+		LEFT JOIN user_profile up ON u.user_id = up.user_id
+		WHERE a.article_id = $1
+	`
 
-	for _, article := range mem.Articles {
-		if article.Title == title && article.AuthorId == authorID {
+	var a models.Article
+	var authorName, displayName, avatarURL string
+	err := r.db.QueryRow(ctx, query, id).Scan(
+		&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.PublishedAt, &a.PublishedAt, &a.Status,
+		&authorName, &displayName, &avatarURL,
+	)
+	if err == pgx.ErrNoRows {
+		return nil, ErrArticleNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
 
-			return nil, fmt.Errorf("%w: %s", ErrArticleExists, authorID)
+	a.AuthorName = displayName
+	if a.AuthorName == "" {
+		a.AuthorName = authorName
+	}
+	a.AuthorAvatar = avatarURL
+
+	return &a, nil
+}
+
+func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.UUID) ([]*models.Article, error) {
+	query := `
+		SELECT a.article_id, a.title, a.content, a.created_at, a.published_at, a.status,
+		       u.login, up.display_name, up.avatar_url
+		FROM article a
+		JOIN user u ON a.author_id = u.user_id
+		LEFT JOIN user_profile up ON u.user_id = up.user_id
+		WHERE a.author_id = $1
+		ORDER BY a.created_at DESC
+	`
+
+	rows, err := r.db.Query(ctx, query, authorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var articles []*models.Article
+	for rows.Next() {
+		var a models.Article
+		var authorName, displayName, avatarURL string
+		if err := rows.Scan(
+			&a.ID, &a.Title, &a.Content, &a.PublishedAt, &a.PublishedAt, &a.Status,
+			&authorName, &displayName, &avatarURL,
+		); err != nil {
+			return nil, err
 		}
-	}
 
-	article := Article{
-		Id:           uuid.New(),
-		AuthorId:     authorID,
-		Title:        title,
-		Content:      content,
-		CreatedAt:    time.Now(),
-		AuthorName:   "Алексей Владимиров",
-		AuthorAvatar: "https://sun9-88.userapi.com/s/v1/ig2/P_e5HW2lWX3ZxayBg73NnzbHzyhxFCXtBseRjSrN_NbemNC78OpkeYfJeXcTOXqyR8NhSwizZKqJEq_R8PhQo607.jpg?quality=95&as=32x40,48x60,72x90,108x135,160x200,240x300,360x450,480x600,540x675,640x800,720x900,1080x1350,1280x1600,1440x1800,1620x2025&from=bu&cs=1620x0",
-		Image:        "https://st4.depositphotos.com/36740986/38337/i/450/depositphotos_383375990-stock-photo-collection-hundred-dollar-banknotes-female.jpg",
-	}
-	mem.Articles = append(mem.Articles, article)
-	copyArticle := article
-	return &copyArticle, nil
-}
-
-func (mem *InMemoryArticle) GetArticleById(ctx context.Context, articleID uuid.UUID) (*Article, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
-
-	for i := range mem.Articles {
-		if mem.Articles[i].Id == articleID {
-			copyArticle := mem.Articles[i]
-			return &copyArticle, nil
+		a.AuthorID = authorID
+		a.AuthorName = displayName
+		if a.AuthorName == "" {
+			a.AuthorName = authorName
 		}
+		a.AuthorAvatar = avatarURL
+
+		articles = append(articles, &a)
 	}
 
-	return nil, fmt.Errorf("%w: %s", ErrArticleNotFound, articleID)
+	return articles, rows.Err()
 }
 
-func (mem *InMemoryArticle) GetArticlesByAuthorId(ctx context.Context, authorId uuid.UUID) ([]*Article, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
+func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]*models.Article, error) {
+	query := `
+		SELECT a.article_id, a.author_id, a.title, a.content, a.created_at, a.published_at, a.status,
+		       u.login, up.display_name, up.avatar_url
+		FROM article a
+		JOIN user u ON a.author_id = u.user_id
+		LEFT JOIN user_profile up ON u.user_id = up.user_id
+		WHERE a.status = 'published'
+		ORDER BY a.published_at DESC NULLS LAST, a.created_at DESC
+		OFFSET $1 LIMIT 5
+	`
 
-	var result []*Article
-	for i := range mem.Articles {
-		if mem.Articles[i].AuthorId == authorId {
-			temp := mem.Articles[i]
-			result = append(result, &temp)
+	rows, err := r.db.Query(ctx, query, feed.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var articles []*models.Article
+	for rows.Next() {
+		var a models.Article
+		var authorName, displayName, avatarURL string
+		if err := rows.Scan(
+			&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.PublishedAt, &a.Status,
+			&authorName, &displayName, &avatarURL,
+		); err != nil {
+			return nil, err
 		}
-	}
 
-	return result, nil
-}
-
-func (mem *InMemoryArticle) GetFeedArticles(ctx context.Context, feed models.Feed) ([]*Article, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
-
-	end := feed.Offset + 6
-	if end > len(mem.Articles) {
-		end = len(mem.Articles)
-	}
-
-	out := make([]*Article, 0, end-feed.Offset)
-	for i := feed.Offset; i < end; i++ {
-		a := mem.Articles[i]
-		out = append(out, &a)
-	}
-
-	return out, nil
-}
-
-func (mem *InMemoryArticle) DeleteArticle(ctx context.Context, articleID uuid.UUID) (bool, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
-
-	for idx, article := range mem.Articles {
-		if article.Id == articleID {
-			mem.Articles[idx] = mem.Articles[len(mem.Articles)-1]
-			mem.Articles = mem.Articles[:len(mem.Articles)-1]
-
-			return true, nil
+		a.AuthorName = displayName
+		if a.AuthorName == "" {
+			a.AuthorName = authorName
 		}
+		a.AuthorAvatar = avatarURL
+
+		articles = append(articles, &a)
 	}
 
-	return false, fmt.Errorf("%w: %s", ErrArticleNotFound, articleID)
+	return articles, rows.Err()
+}
+
+func (r *ArticleRepo) Update(ctx context.Context, article *models.Article) error {
+	query := `
+        UPDATE article
+        SET 
+            title = COALESCE($1, title),
+            content = COALESCE($2, content),
+            image_url = COALESCE($3, image_url),
+            status = COALESCE($4, status),
+            updated_at = CURRENT_TIMESTAMP
+        WHERE article_id = $5 AND author_id = $6
+        RETURNING updated_at
+    `
+
+	var updatedAt time.Time
+	err := r.db.QueryRow(ctx, query,
+		article.Title,
+		article.Content,
+		article.ImageURL,
+		article.Status,
+		article.ID,
+		article.AuthorID,
+	).Scan(&updatedAt)
+
+	if err == pgx.ErrNoRows {
+		return ErrArticleNotFound
+	}
+	if err != nil {
+		return fmt.Errorf("update article: %w", err)
+	}
+
+	article.UpdatedAt = updatedAt
+	return nil
+}
+
+func (r *ArticleRepo) DeleteArticle(ctx context.Context, id uuid.UUID) (bool, error) {
+	query := `DELETE FROM article WHERE article_id = $1`
+	cmd, err := r.db.Exec(ctx, query, id)
+	if err != nil {
+		return false, err
+	}
+	return cmd.RowsAffected() > 0, nil
+}
+
+func (r *ArticleRepo) loadAuthor(ctx context.Context, a *models.Article) error {
+	query := `
+		SELECT u.login, up.display_name, up.avatar_url
+		FROM user u
+		LEFT JOIN user_profile up ON u.user_id = up.user_id
+		WHERE u.user_id = $1
+	`
+
+	var authorName, displayName, avatarURL string
+	err := r.db.QueryRow(ctx, query, a.AuthorID).Scan(&authorName, &displayName, &avatarURL)
+	if err != nil {
+		return err
+	}
+
+	a.AuthorName = displayName
+	if a.AuthorName == "" {
+		a.AuthorName = authorName
+	}
+	a.AuthorAvatar = avatarURL
+
+	return nil
 }
