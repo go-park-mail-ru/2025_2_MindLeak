@@ -107,6 +107,40 @@ CREATE TABLE notification (
                               CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES "user"(user_id) ON DELETE CASCADE
 );
 
+CREATE TABLE profile (
+                         profile_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                         user_id UUID NOT NULL UNIQUE,
+                         phone TEXT CHECK (LENGTH(phone) <= 20),
+                         country TEXT CHECK (LENGTH(country) <= 64),
+                         language TEXT CHECK (LENGTH(language) <= 32),
+                         sex TEXT CHECK (sex IN ('male', 'female', 'undefined')) DEFAULT 'undefined',
+                         date_of_birth DATE,
+                         age INT CHECK (age >= 0),
+                         cover_url TEXT CHECK (cover_url ~ '^https?://[A-Za-z0-9.-]+\\.[A-Za-z]{2,}/.*$'),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_profile_user FOREIGN KEY (user_id)
+        REFERENCES "user"(user_id) ON DELETE CASCADE
+);
+
+CREATE TRIGGER trigger_update_profile_updated_at
+    BEFORE UPDATE ON profile
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TYPE media_type AS ENUM ('image', 'video', 'audio', 'document', 'other');
+
+CREATE TABLE media (
+                       media_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                       article_id UUID REFERENCES article(article_id) ON DELETE CASCADE,
+                       uploader_id UUID REFERENCES "user"(user_id) ON DELETE SET NULL,
+                       type media_type NOT NULL,
+                       mime TEXT NOT NULL,
+                       url TEXT NOT NULL CHECK (url ~ '^https?://[A-Za-z0-9.-]+\\.[A-Za-z]{2,}/.*$'),
+    size_bytes BIGINT CHECK (size_bytes >= 0),
+    description TEXT CHECK (LENGTH(description) <= 500),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -149,6 +183,9 @@ DROP TABLE IF EXISTS tag;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS user_profile;
 DROP TABLE IF EXISTS "user";
+DROP TABLE IF EXISTS media;
+DROP TYPE IF EXISTS media_type;
+DROP TABLE IF EXISTS profile;
 DROP TYPE IF EXISTS article_status;
 DROP TYPE IF EXISTS notification_type;
 DROP EXTENSION IF EXISTS "pgcrypto";
