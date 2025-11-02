@@ -25,8 +25,8 @@ func NewRouter(articleHandler *article.Handler, authHandler *auth.Handler, profi
 	router.HandleFunc("/me", authHandler.Me).Methods("GET")
 	router.HandleFunc("/swagger", swagger.SwaggerHandler).Methods("GET")
 
-	router.HandleFunc("/profile", profileHandler.ShowProfileHandler).Methods("GET")     //свой профиль
-	router.HandleFunc("/profile{id}", profileHandler.ShowProfileHandler).Methods("GET") //чужой профиль
+	router.HandleFunc("/profile", profileHandler.ShowProfileHandler).Methods("GET")      //свой профиль
+	router.HandleFunc("/profile/{id}", profileHandler.ShowProfileHandler).Methods("GET") //чужой профиль
 	router.HandleFunc("/profile", profileHandler.EditProfileHandler).Methods("PUT")
 
 	return router

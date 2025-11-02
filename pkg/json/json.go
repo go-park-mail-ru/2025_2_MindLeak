@@ -7,13 +7,13 @@ import (
 	"net/http"
 )
 
-func Read(r *http.Request, int interface{}) error {
+func Read(r *http.Request, v interface{}) error {
 	body, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(body, &int)
+	return json.Unmarshal(body, v)
 }
 
 func Write(w http.ResponseWriter, status int, v interface{}) error {
