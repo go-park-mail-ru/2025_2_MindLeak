@@ -1,0 +1,12 @@
+DROP TABLE notification;
+DROP TABLE comment_like;
+DROP TABLE article_like;
+DROP TABLE article_tag;
+DROP TABLE article_category;
+DROP TABLE comment;
+DROP TABLE article;
+DROP TABLE tag;
+DROP TABLE category;
+DROP TABLE user_profile;
+DROP TABLE user;
+DROP EXTENSION IF EXISTS "pgcrypto";
