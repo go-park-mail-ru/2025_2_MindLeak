@@ -44,42 +44,6 @@ func NewArticleRepo(db *pgxpool.Pool) *ArticleRepo {
 	return &ArticleRepo{db: db}
 }
 
-// func NewInMemoryArticle() *InMemoryArticle {
-// 	articles := &InMemoryArticle{
-// 		Articles: make([]Article, 0),
-// 	}
-// 	authorID := uuid.New()
-
-// 	//TODO: Контекст просто, чтоб работало. Потом пробрось нормальный
-// 	ctx := context.Background()
-
-// 	_, _ = articles.CreateArticle(ctx, authorID,
-// 		"ИИ в 2025: Как нейросети меняют бизнес-процессы",
-// 		"Искусственный интеллект в 2025 году стал неотъемлемой частью бизнеса...")
-
-// 	_, _ = articles.CreateArticle(ctx, authorID,
-// 		"Как российский стартап привлёк $10M на рынке SaaS",
-// 		"Российский стартап CloudPeak разработал SaaS-платформу...")
-
-// 	_, _ = articles.CreateArticle(ctx, authorID,
-// 		"Тренды контент-маркетинга: Что работает в 2025 году",
-// 		"Контент-маркетинг в 2025 году переживает новый виток...")
-
-// 	_, _ = articles.CreateArticle(ctx, authorID,
-// 		"Почему 80% стартапов терпят неудачу в первый год",
-// 		"Запуск стартапа — это всегда риск...")
-
-// 	_, _ = articles.CreateArticle(ctx, authorID,
-// 		"Как мы увеличили конверсию на 30% с помощью UX",
-// 		"Компания BrightPath переработала интерфейс...")
-
-// 	_, _ = articles.CreateArticle(ctx, authorID,
-// 		"Экспериментальный сверхдлинный заголовок статьи, в котором мы попробуем уместить сразу и суть, и интригу, и даже немного юмора, чтобы проверить, как фронтенд справится с рендерингом текста...",
-// 		`Это тестовое содержимое статьи, которое специально сделано очень длинным, чтобы проверить работу фронтенда с большими объёмами текста... (длинный текст)`)
-
-// 	return articles
-// }
-
 func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string) (*models.Article, error) {
 	query := `
 		INSERT INTO article (author_id, title, content, status)
