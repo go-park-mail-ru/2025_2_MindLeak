@@ -34,7 +34,7 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return
 	}
 
@@ -47,7 +47,6 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if inputDto.DateOfBirth != "" {
 		dob, err = time.Parse("2006-01-02", inputDto.DateOfBirth)
 		if err != nil {
-
 			json.WriteError(w, http.StatusBadRequest, "invalid date_of_birth (expected YYYY-MM-DD)")
 			logger.Error(ctx, "parse dob: %v", err)
 			return
@@ -87,7 +86,7 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return
 	}
 }

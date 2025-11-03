@@ -16,7 +16,7 @@ var decoder = schema.NewDecoder()
 
 func (h *Handler) Feed(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	logger.Info(ctx, "[article.Feed] handler start", nil)
+	logger.Info(ctx, "[article.Feed] handler start")
 
 	decoder.IgnoreUnknownKeys(true)
 
@@ -42,7 +42,7 @@ func (h *Handler) Feed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info(ctx, "[article.Feed] usecase.Feed success, preparing response", nil)
+	logger.Info(ctx, "[article.Feed] usecase.Feed success, preparing response")
 
 	feedOutputDto := toOutputDTO(output)
 
@@ -51,7 +51,7 @@ func (h *Handler) Feed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info(ctx, "[article.Feed] handler finished successfully", nil)
+	logger.Info(ctx, "[article.Feed] handler finished successfully")
 }
 
 func toOutputDTO(usecaseDto usecaseDTO.ReceivedFeedDTO) dto.FeedOutputDTO {

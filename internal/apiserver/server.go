@@ -34,29 +34,28 @@ type Server struct {
 }
 
 func New(config *server.Config) (*Server, error) {
-	logger.Info(nil, "Logger initialized", nil)
-	logger.Info(nil, "Server started initializing", nil)
+	logger.Info(nil, "Logger initialized")
+	logger.Info(nil, "Server started initializing")
 
 	//INITIALIZE POSTGRES
 	PGConfig := postgres.NewPostgresConfig()
 	DB, err := PGConfig.PGconnect()
 	if err != nil {
-		logger.Error(nil, "Error initializing DB connection", nil)
+		logger.Error(nil, "Error initializing DB connection")
 		return nil, err
 	}
 
-	logger.Info(nil, "Postgres connection initialized", nil)
+	logger.Info(nil, "Postgres connection initialized")
 
 	//INITIALIZE REDIS
 	RedisConfig := redis.NewRedisConfig()
 
-	// Проверим подключение сразу, чтобы не запускать сервер зря
 	if err := RedisConfig.Ping(); err != nil {
 		logger.Error(nil, "Error initializing Redis connection: %v", err)
 		return nil, err
 	}
 
-	logger.Info(nil, "Redis pool initialized", nil)
+	logger.Info(nil, "Redis pool initialized")
 
 	//INITIALIZE MINIO
 	minioCfg := minio.NewMinioConfig()
@@ -67,10 +66,10 @@ func New(config *server.Config) (*Server, error) {
 		minioCfg.Bucket,
 		minioCfg.Bucket)
 	if err != nil {
-		logger.Error(nil, "Error initializing MinIO client", nil)
+		logger.Error(nil, "Error initializing MinIO client")
 		return nil, err
 	}
-	logger.Info(nil, "MinIO client initialized", nil)
+	logger.Info(nil, "MinIO client initialized")
 
 	sessionRepo := session.NewRedisSessionManager(RedisConfig.GetPool())
 	userRepo := user.NewPostgresUser(DB, *minioCfg)
@@ -107,8 +106,8 @@ func (s *Server) StartServer() {
 	logger.Info(nil, fmt.Sprintf("Starting MindLeak API server on %s", s.server.Addr))
 
 	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Error(nil, fmt.Sprintf("Server stopped with error: %v", err), nil)
+		logger.Error(nil, "Server stopped with error: %v", err)
 	} else {
-		logger.Info(nil, "Server stopped gracefully", nil)
+		logger.Info(nil, "Server stopped gracefully")
 	}
 }

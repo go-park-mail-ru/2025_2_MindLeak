@@ -18,7 +18,7 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return
 	}
 
@@ -32,7 +32,7 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return
 	}
 
@@ -48,7 +48,7 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return
 	}
 }

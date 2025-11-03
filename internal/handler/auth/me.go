@@ -12,7 +12,7 @@ import (
 
 func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	logger.Info(ctx, " handler start", nil)
+	logger.Info(ctx, " handler start")
 
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
@@ -40,7 +40,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info(ctx, "usecase.Me success, preparing response", nil)
+	logger.Info(ctx, "usecase.Me success, preparing response")
 
 	userOutputDto := &dto.UserOutputMe{
 		Email:  output.Email,
@@ -55,5 +55,5 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info(ctx, "[auth.Me] handler finished successfully", nil)
+	logger.Info(ctx, "[auth.Me] handler finished successfully")
 }
