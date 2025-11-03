@@ -57,12 +57,12 @@ func New(config *server.Config) (*Server, error) {
 	logger.Info(nil, "Redis connection initialized", nil)
 
 	//INITIALIZE MINIO
-	_ = minio.NewMinioConfig()
+	minioCfg := minio.NewMinioConfig()
 
 	sessionRepo := session.NewRedisSessionManager(RedisConn)
-	userRepo := user.NewPostgresUser(DB)
+	userRepo := user.NewPostgresUser(DB, *minioCfg)
 	articleRepo := article.NewArticleRepo(DB)
-	profileRepo := profile.NewPostgresProfile(DB)
+	profileRepo := profile.NewPostgresProfile(DB, *minioCfg)
 
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo)
 	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo)

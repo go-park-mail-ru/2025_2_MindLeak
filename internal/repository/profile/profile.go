@@ -77,17 +77,18 @@ type ProfileRepository interface {
 }
 
 type PostgresProfile struct {
-	db *sql.DB
+	db    *sql.DB
+	minio minio.MinioConfig
 }
 
-func NewPostgresProfile(db *sql.DB) *PostgresProfile {
-	return &PostgresProfile{db: db}
+func NewPostgresProfile(db *sql.DB, minio minio.MinioConfig) *PostgresProfile {
+	return &PostgresProfile{db: db, minio: minio}
 }
 
 func (p *PostgresProfile) CreateProfile(ctx context.Context, userID uuid.UUID) (models.Profile, error) {
 	var profile models.Profile
 
-	defaultCover := minio.DefaultCoverURL
+	defaultCover := p.minio.GetDefaultCover()
 	defaultSex := models.SexUndefined
 	defaultDate := time.Time{}
 	defaultPhone := ""

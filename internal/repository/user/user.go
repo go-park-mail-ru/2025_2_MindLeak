@@ -47,16 +47,17 @@ type UserRepository interface {
 }
 
 type PostgresUser struct {
-	db *sql.DB
+	db    *sql.DB
+	minio minio.MinioConfig
 }
 
-func NewPostgresUser(db *sql.DB) *PostgresUser {
-	return &PostgresUser{db: db}
+func NewPostgresUser(db *sql.DB, minio minio.MinioConfig) *PostgresUser {
+	return &PostgresUser{db: db, minio: minio}
 }
 
 func (p *PostgresUser) CreateUser(ctx context.Context, email, password, name string) (models.User, error) {
 	var user models.User
-	defaultAvatar := minio.DefaultAvatarURL
+	defaultAvatar := p.minio.GetDefaultAvatar()
 
 	err := p.db.QueryRowContext(ctx,
 		CreateUserQuery+" RETURNING user_id, email, password, name, avatar",
