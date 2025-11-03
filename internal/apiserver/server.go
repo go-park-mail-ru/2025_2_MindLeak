@@ -49,13 +49,14 @@ func New(config *server.Config) (*Server, error) {
 
 	//INITIALIZE REDIS
 	RedisConfig := redis.NewRedisConfig()
-	RedisConn, err := RedisConfig.RedisConnect()
-	if err != nil {
-		logger.Error(nil, "Error initializing Redis connection", nil)
+
+	// Проверим подключение сразу, чтобы не запускать сервер зря
+	if err := RedisConfig.Ping(); err != nil {
+		logger.Error(nil, "Error initializing Redis connection: %v", err)
 		return nil, err
 	}
 
-	logger.Info(nil, "Redis connection initialized", nil)
+	logger.Info(nil, "Redis pool initialized", nil)
 
 	//INITIALIZE MINIO
 	minioCfg := minio.NewMinioConfig()
@@ -71,7 +72,7 @@ func New(config *server.Config) (*Server, error) {
 	}
 	logger.Info(nil, "MinIO client initialized", nil)
 
-	sessionRepo := session.NewRedisSessionManager(RedisConn)
+	sessionRepo := session.NewRedisSessionManager(RedisConfig.GetPool())
 	userRepo := user.NewPostgresUser(DB, *minioCfg)
 	articleRepo := article.NewArticleRepo(DB)
 	profileRepo := profile.NewPostgresProfile(DB, *minioCfg)

@@ -25,17 +25,20 @@ type SessionRepository interface {
 }
 
 type RedisSessionManager struct {
-	redisConn redis.Conn
+	pool *redis.Pool
 }
 
-func NewRedisSessionManager(conn redis.Conn) *RedisSessionManager {
-	return &RedisSessionManager{redisConn: conn}
+func NewRedisSessionManager(pool *redis.Pool) *RedisSessionManager {
+	return &RedisSessionManager{pool: pool}
 }
 
 func (s *RedisSessionManager) CreateSession(ctx context.Context) (models.Session, error) {
+	conn := s.pool.Get()
+	defer conn.Close()
+
 	sessionID := uuid.New()
 
-	_, err := s.redisConn.Do("SETEX",
+	_, err := conn.Do("SETEX",
 		"session:"+sessionID.String(),
 		int(24*time.Hour/time.Second),
 		"",
@@ -45,17 +48,19 @@ func (s *RedisSessionManager) CreateSession(ctx context.Context) (models.Session
 		return models.Session{}, ErrCreatingSession
 	}
 
-	logger.Info(ctx, "🆕 Empty session %s created", sessionID)
+	logger.Info(ctx, "Empty session %s created", sessionID)
 
 	return models.Session{
 		SessionId: sessionID,
 		UserId:    uuid.Nil,
 	}, nil
-
 }
 
 func (s *RedisSessionManager) GetSessionById(ctx context.Context, sessionId uuid.UUID) (models.Session, error) {
-	value, err := redis.String(s.redisConn.Do("GET", "session:"+sessionId.String()))
+	conn := s.pool.Get()
+	defer conn.Close()
+
+	value, err := redis.String(conn.Do("GET", "session:"+sessionId.String()))
 	if err == redis.ErrNil {
 		logger.Error(ctx, "Session %s not found", sessionId.String())
 		return models.Session{}, ErrSessionNotFound
@@ -83,7 +88,10 @@ func (s *RedisSessionManager) GetSessionById(ctx context.Context, sessionId uuid
 }
 
 func (s *RedisSessionManager) SetSessionUserId(ctx context.Context, sessionId uuid.UUID, userId uuid.UUID) (models.Session, error) {
-	exists, err := redis.Int(s.redisConn.Do("EXISTS", "session:"+sessionId.String()))
+	conn := s.pool.Get()
+	defer conn.Close()
+
+	exists, err := redis.Int(conn.Do("EXISTS", "session:"+sessionId.String()))
 	if err != nil {
 		logger.Error(ctx, "Error checking session existence: %v", err)
 		return models.Session{}, err
@@ -93,7 +101,7 @@ func (s *RedisSessionManager) SetSessionUserId(ctx context.Context, sessionId uu
 		return models.Session{}, ErrSessionNotFound
 	}
 
-	_, err = s.redisConn.Do("SETEX",
+	_, err = conn.Do("SETEX",
 		"session:"+sessionId.String(),
 		int(24*time.Hour/time.Second),
 		userId.String(),
@@ -112,7 +120,10 @@ func (s *RedisSessionManager) SetSessionUserId(ctx context.Context, sessionId uu
 }
 
 func (s *RedisSessionManager) DeleteSessionById(ctx context.Context, sessionId uuid.UUID) (bool, error) {
-	deleted, err := redis.Int(s.redisConn.Do("DEL", "session:"+sessionId.String()))
+	conn := s.pool.Get()
+	defer conn.Close()
+
+	deleted, err := redis.Int(conn.Do("DEL", "session:"+sessionId.String()))
 	if err != nil {
 		logger.Error(ctx, "Error deleting session %s: %v", sessionId.String(), err)
 		return false, err
