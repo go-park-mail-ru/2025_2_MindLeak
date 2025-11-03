@@ -44,6 +44,9 @@ func (h *Handler) handleError(err error) (int, string) {
 	case errors.Is(err, usecase.ProfileNotDeleted):
 		return http.StatusUnauthorized, "profile not deleted"
 	case errors.Is(err, usecase.ProfileNotGet):
+		return http.StatusUnauthorized, "profile not get"
+	default:
+		return http.StatusInternalServerError, "internal server error"
 	}
 	return 0, "nil"
 }

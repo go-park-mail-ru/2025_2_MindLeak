@@ -33,13 +33,15 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if idStr, ok := vars["id"]; ok && idStr != "" {
 		targetID, err = uuid.Parse(idStr)
 		if err != nil {
-			json.WriteError(w, http.StatusBadRequest, "invalid profile id")
+			code, msg := h.handleError(err)
+			json.WriteError(w, code, msg)
 			return
 		}
 	} else {
 		session, err := h.Usecase.GetSession(ctx, sessionID)
 		if err != nil {
-			json.WriteError(w, http.StatusUnauthorized, "invalid session")
+			code, msg := h.handleError(err)
+			json.WriteError(w, code, msg)
 			return
 		}
 		targetID = session.UserId
