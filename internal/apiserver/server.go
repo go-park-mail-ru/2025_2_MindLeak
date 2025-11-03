@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/redis"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
@@ -58,6 +59,17 @@ func New(config *server.Config) (*Server, error) {
 
 	//INITIALIZE MINIO
 	minioCfg := minio.NewMinioConfig()
+	_, err = minio_client.NewClient(
+		minioCfg.Endpoint,
+		minioCfg.User,
+		minioCfg.Password,
+		minioCfg.Bucket,
+		minioCfg.Bucket)
+	if err != nil {
+		logger.Error(nil, "Error initializing MinIO client", nil)
+		return nil, err
+	}
+	logger.Info(nil, "MinIO client initialized", nil)
 
 	sessionRepo := session.NewRedisSessionManager(RedisConn)
 	userRepo := user.NewPostgresUser(DB, *minioCfg)
