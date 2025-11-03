@@ -1,18 +1,19 @@
 package middleware
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"net/http"
 	"runtime/debug"
-
-	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 )
 
 func RecoverMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
-			if rec := recover(); rec != nil {
-				logger.Error(r.Context(), "PANIC: %v\n%s", rec, string(debug.Stack()), nil)
-				http.Error(w, "internal server error", http.StatusInternalServerError)
+			if err := recover(); err != nil {
+				logger.Error(r.Context(), "panic recovered: %v", err)
+				debug.PrintStack()
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte("Internal Server Error"))
 			}
 		}()
 		next.ServeHTTP(w, r)

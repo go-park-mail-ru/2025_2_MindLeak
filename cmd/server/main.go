@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/BurntSushi/toml"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/apiserver"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/server"
@@ -12,6 +13,7 @@ import (
 func main() {
 	config := server.NewConfig()
 	_, err := toml.DecodeFile("configs/server.toml", config)
+	fmt.Println(config)
 	if err != nil {
 		log.Fatal(err)
 	}

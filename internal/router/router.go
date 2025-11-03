@@ -14,7 +14,7 @@ func NewRouter(articleHandler *article.Handler, authHandler *auth.Handler, profi
 
 	router.Use(middleware.RecoverMiddleware)
 
-	router.Use(middleware.RequestIDMiddleware)
+	//router.Use(middleware.RequestIDMiddleware)
 	router.Use(middleware.CORSMiddleware)
 	//router.Use(middleware.AuthMiddleware) Потом подключить к нужным ручкам
 

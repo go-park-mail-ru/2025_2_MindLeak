@@ -1,5 +1,5 @@
 bind_addr = ":8090"
 log_level = "debug"
-read_timeout = 60
-write_timeout = 60
+read_timeout = "60s"
+write_timeout = "60s"
 
