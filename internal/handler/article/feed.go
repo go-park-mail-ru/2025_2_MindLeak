@@ -62,7 +62,7 @@ func toOutputDTO(usecaseDto usecaseDTO.ReceivedFeedDTO) dto.FeedOutputDTO {
 			AuthorId:     a.AuthorID,
 			Title:        a.Title,
 			Content:      a.Content,
-			CreatedAt:    a.PublishedAt,
+			CreatedAt:    a.CreatedAt,
 			Image:        a.ImageURL,
 			AuthorName:   a.AuthorName,
 			AuthorAvatar: a.AuthorAvatar,

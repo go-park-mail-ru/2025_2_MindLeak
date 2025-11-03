@@ -2,8 +2,11 @@ package postgres
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"log"
 	"os"
 )
 
@@ -12,10 +15,10 @@ type PostgresConfig struct {
 }
 
 func NewPostgresConfig() *PostgresConfig {
-	//err := godotenv.Load(".env")
-	//if err != nil {
-	//	log.Fatalf("Ошибка загрузки .env файла: %v", err)
-	//}
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("Ошибка загрузки .env файла: %v", err)
+	}
 
 	return &PostgresConfig{
 		dsn: os.Getenv("DATABASE_URL"),
@@ -25,6 +28,7 @@ func NewPostgresConfig() *PostgresConfig {
 func (conn *PostgresConfig) PGconnect() (*sql.DB, error) {
 
 	db, err := sql.Open("postgres", conn.dsn)
+	fmt.Println(conn.dsn)
 	if err != nil {
 		logger.Error(nil, "Error connecting to pg database: %v", err)
 		return nil, err

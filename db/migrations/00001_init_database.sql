@@ -8,7 +8,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE "user" (
                         user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         email TEXT NOT NULL UNIQUE,
-                        password_hash TEXT NOT NULL,
+                        password TEXT NOT NULL,
                         name TEXT NOT NULL,
                         avatar TEXT,
                         created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -42,7 +42,7 @@ CREATE TABLE article (
                          author_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
                          title TEXT NOT NULL,
                          content TEXT NOT NULL,
-                         image TEXT,
+                         image_url TEXT,
                          status article_status NOT NULL DEFAULT 'draft',
                          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP

@@ -21,11 +21,11 @@ var (
 )
 
 const (
-	CreateUserQuery     = `INSERT INTO user (email, password, name, avatar) VALUES ($1, $2, $3, $4)`
-	GetUserByIdQuery    = `SELECT id, email, password, name, avatar FROM user WHERE id=$1`
-	GetUserByEmailQuery = `SELECT id, email, password, name, avatar FROM user WHERE email=$1`
-	GetAllUsersQuery    = `SELECT id, email, password, name, avatar FROM user`
-	DeleteUserQuery     = `DELETE FROM user WHERE id=$1`
+	CreateUserQuery     = `INSERT INTO "user" (email, password, name, avatar) VALUES ($1, $2, $3, $4)`
+	GetUserByIdQuery    = `SELECT user_id, email, password, name, avatar FROM "user" WHERE id=$1`
+	GetUserByEmailQuery = `SELECT user_id, email, password, name, avatar FROM "user" WHERE email=$1`
+	GetAllUsersQuery    = `SELECT user_id, email, password, name, avatar FROM "user"`
+	DeleteUserQuery     = `DELETE FROM "user" WHERE user_id=$1`
 	UpdateUserQuery     = `
     UPDATE "user"
     SET
