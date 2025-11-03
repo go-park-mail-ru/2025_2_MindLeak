@@ -73,7 +73,9 @@ func New(config *server.Config) (*Server, error) {
 	profileHandler := profileHandler.NewProfileHandler(profileUsecase)
 
 	mux := router.NewRouter(articleHandler, authHandler, profileHandler)
-	handler := middleware.RecoverMiddleware(mux)
+
+	handler := middleware.CORSMiddleware(mux)
+	handler = middleware.RecoverMiddleware(handler)
 
 	server := http.Server{
 		Addr:         config.BindAddr,
