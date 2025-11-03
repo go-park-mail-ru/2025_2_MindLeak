@@ -85,8 +85,20 @@ func NewPostgresProfile(db *sql.DB) *PostgresProfile {
 
 func (p *PostgresProfile) CreateProfile(ctx context.Context, userID uuid.UUID) (models.Profile, error) {
 	var profile models.Profile
+
 	defaultCover := minio.DefaultCoverURL
-	err := p.db.QueryRowContext(ctx, CreateProfileQuery, userID, defaultCover).Scan(
+	defaultSex := models.SexUndefined
+	defaultPhone := ""
+	defaultCountry := ""
+	defaultLanguage := ""
+	defaultAge := 0
+
+	err := p.db.QueryRowContext(ctx, `
+        INSERT INTO profile (user_id, phone, country, language, sex, age, cover_url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING profile_id, user_id, phone, country, language, sex, date_of_birth, age, cover_url, created_at, updated_at
+    `, userID, defaultPhone, defaultCountry, defaultLanguage, defaultSex, defaultAge, defaultCover,
+	).Scan(
 		&profile.Id,
 		&profile.UserID,
 		&profile.Phone,
@@ -102,6 +114,7 @@ func (p *PostgresProfile) CreateProfile(ctx context.Context, userID uuid.UUID) (
 	if err != nil {
 		return models.Profile{}, fmt.Errorf("create profile: %w", err)
 	}
+
 	return profile, nil
 }
 
