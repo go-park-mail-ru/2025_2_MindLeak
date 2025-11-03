@@ -24,7 +24,7 @@ func (h *Handler) handleError(err error) (int, string) {
 		return http.StatusBadRequest, err.Error()
 
 	case errors.Is(err, usecase.InvalidCredentials):
-		return http.StatusUnauthorized, "invalid credentials"
+		return http.StatusBadRequest, "invalid credentials"
 
 	case errors.Is(err, usecase.SessionNotFound):
 		return http.StatusUnauthorized, "session not found"

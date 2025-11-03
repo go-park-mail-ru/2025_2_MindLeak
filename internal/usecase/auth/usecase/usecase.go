@@ -51,6 +51,8 @@ func (u *Usecase) handleError(err error) error {
 		return SessionNotSet
 	case errors.Is(err, repoUser.ErrCreatingUser):
 		return UserNotCreated
+	case errors.Is(err, repoUser.ErrUserExists):
+		return UserExists
 	case errors.Is(err, repoUser.ErrDeletingUser):
 		return UserNotDeleted
 	case errors.Is(err, repoUser.ErrGettingUser):

@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
@@ -23,7 +22,7 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 	user, err := u.userRepo.GetUserByEmail(ctx, userModel.Email)
 	if err != nil {
 		logger.Error(ctx, err.Error(), nil)
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("get auth usecase: %w", err)
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	if user.Password != userModel.Password {
@@ -33,13 +32,13 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
 		logger.Error(ctx, err.Error(), nil)
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("get auth usecase: %w", err)
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	_, err = u.sessionRepo.SetSessionUserId(ctx, session.SessionId, user.Id)
 	if err != nil {
 		logger.Error(ctx, err.Error(), nil)
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("get auth usecase: %w", err)
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	outDto := dto.RegisteredUserDto{
@@ -48,6 +47,6 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 		Avatar: user.Avatar,
 	}
 
-	return outDto, session.UserId, nil
+	return outDto, session.SessionId, nil
 
 }

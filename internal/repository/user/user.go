@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/lib/pq"
 
 	"github.com/google/uuid"
 )
@@ -53,9 +54,8 @@ func NewPostgresUser(db *sql.DB) *PostgresUser {
 	return &PostgresUser{db: db}
 }
 
-func (p *PostgresUser) CreateUser(ctx context.Context, email string, password string, name string) (models.User, error) {
+func (p *PostgresUser) CreateUser(ctx context.Context, email, password, name string) (models.User, error) {
 	var user models.User
-
 	defaultAvatar := minio.DefaultAvatarURL
 
 	err := p.db.QueryRowContext(ctx,
@@ -64,6 +64,11 @@ func (p *PostgresUser) CreateUser(ctx context.Context, email string, password st
 	).Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar)
 
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			logger.Error(ctx, "User already exists: %v", pqErr)
+			return models.User{}, ErrUserExists
+		}
+
 		logger.Error(ctx, "Error creating user: %v", err)
 		return models.User{}, ErrCreatingUser
 	}
@@ -94,14 +99,14 @@ func (p *PostgresUser) GetUserByEmail(ctx context.Context, email string) (models
 	var user models.User
 
 	err := p.db.QueryRowContext(ctx, GetUserByEmailQuery, email).Scan(
-		&user.Id,
-		&user.Email,
-		&user.Password,
-		&user.Name,
-		&user.Avatar,
+		&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar,
 	)
-
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Error(ctx, "User not found by email: %s", email)
+			return models.User{}, ErrUserNotFound
+		}
+
 		logger.Error(ctx, "Error getting user: %v", err)
 		return models.User{}, ErrGettingUser
 	}
