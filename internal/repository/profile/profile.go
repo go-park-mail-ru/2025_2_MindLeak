@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/google/uuid"
+	"time"
 )
 
 var (
@@ -19,10 +20,10 @@ var (
 
 const (
 	CreateProfileQuery = `
-	INSERT INTO profile (user_id, cover_url)
-	VALUES ($1, $2)
-	RETURNING profile_id, user_id, phone, country, language, sex, date_of_birth, age, cover_url, created_at, updated_at
-	`
+    INSERT INTO profile (user_id, phone, country, language, sex, date_of_birth, age, cover_url)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING profile_id, user_id, phone, country, language, sex, date_of_birth, age, cover_url, created_at, updated_at
+`
 	GetProfileQuery = `
 	SELECT 
 	    profile_id,
@@ -88,17 +89,13 @@ func (p *PostgresProfile) CreateProfile(ctx context.Context, userID uuid.UUID) (
 
 	defaultCover := minio.DefaultCoverURL
 	defaultSex := models.SexUndefined
+	defaultDate := time.Time{}
 	defaultPhone := ""
 	defaultCountry := ""
 	defaultLanguage := ""
 	defaultAge := 0
 
-	err := p.db.QueryRowContext(ctx, `
-        INSERT INTO profile (user_id, phone, country, language, sex, age, cover_url)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING profile_id, user_id, phone, country, language, sex, date_of_birth, age, cover_url, created_at, updated_at
-    `, userID, defaultPhone, defaultCountry, defaultLanguage, defaultSex, defaultAge, defaultCover,
-	).Scan(
+	err := p.db.QueryRowContext(ctx, CreateProfileQuery, userID, defaultPhone, defaultCountry, defaultLanguage, defaultSex, defaultDate, defaultAge, defaultCover).Scan(
 		&profile.Id,
 		&profile.UserID,
 		&profile.Phone,
