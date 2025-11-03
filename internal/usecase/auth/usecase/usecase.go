@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/profile"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	repoSession "github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
@@ -28,12 +29,14 @@ var (
 type Usecase struct {
 	userRepo    user.UserRepository
 	sessionRepo session.SessionRepository
+	profileRepo profile.ProfileRepository
 }
 
-func NewAuthUsecase(userRepo user.UserRepository, sessionRepo session.SessionRepository) *Usecase {
+func NewAuthUsecase(userRepo user.UserRepository, sessionRepo session.SessionRepository, profileRepo profile.ProfileRepository) *Usecase {
 	return &Usecase{
 		userRepo:    userRepo,
 		sessionRepo: sessionRepo,
+		profileRepo: profileRepo,
 	}
 }
 

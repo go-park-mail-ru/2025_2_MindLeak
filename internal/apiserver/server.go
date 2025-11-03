@@ -65,8 +65,8 @@ func New(config *server.Config) (*Server, error) {
 	profileRepo := profile.NewPostgresProfile(DB)
 
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo)
-	authUsecase := authUsecase.NewAuthUsecase(userRepo, sessionRepo)
 	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo)
+	authUsecase := authUsecase.NewAuthUsecase(userRepo, sessionRepo, profileRepo)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)
 	authHandler := authHandler.NewAuthHandler(authUsecase)

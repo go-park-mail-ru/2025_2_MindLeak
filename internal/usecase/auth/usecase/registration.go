@@ -34,6 +34,12 @@ func (u *Usecase) Registration(ctx context.Context, user models.User) (dto.Regis
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
+	_, err = u.profileRepo.CreateProfile(ctx, newUser.Id)
+	if err != nil {
+		logger.Error(ctx, err.Error(), nil)
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
+	}
+
 	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
 		logger.Error(ctx, err.Error(), nil)
