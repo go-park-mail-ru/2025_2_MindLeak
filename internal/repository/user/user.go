@@ -22,7 +22,7 @@ var (
 
 const (
 	CreateUserQuery     = `INSERT INTO "user" (email, password, name, avatar) VALUES ($1, $2, $3, $4)`
-	GetUserByIdQuery    = `SELECT user_id, email, password, name, avatar FROM "user" WHERE id=$1`
+	GetUserByIdQuery    = `SELECT user_id, email, password, name, avatar FROM "user" WHERE user_id=$1`
 	GetUserByEmailQuery = `SELECT user_id, email, password, name, avatar FROM "user" WHERE email=$1`
 	GetAllUsersQuery    = `SELECT user_id, email, password, name, avatar FROM "user"`
 	DeleteUserQuery     = `DELETE FROM "user" WHERE user_id=$1`
@@ -32,8 +32,8 @@ const (
         name = $2,
         avatar = $3,
         updated_at = NOW()
-    WHERE id = $1
-    RETURNING id, email, password, name, avatar;`
+    WHERE user_id = $1
+    RETURNING user_id, email, password, name, avatar;`
 )
 
 type UserRepository interface {
@@ -59,7 +59,7 @@ func (p *PostgresUser) CreateUser(ctx context.Context, email string, password st
 	defaultAvatar := minio.DefaultAvatarURL
 
 	err := p.db.QueryRowContext(ctx,
-		CreateUserQuery+" RETURNING id, email, password, name, avatar",
+		CreateUserQuery+" RETURNING user_id, email, password, name, avatar",
 		email, password, name, defaultAvatar,
 	).Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar)
 
