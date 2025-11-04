@@ -30,7 +30,7 @@ func NewClient(endpoint, user, password, bucket, publicURL string) (*Client, err
 }
 
 func (c *Client) GetDefaultAvatar() string {
-	return fmt.Sprintf("%s/%s/defaultAvatar.jpg", c.publicURL, c.bucket)
+	return fmt.Sprintf("%s/%s/defaultAvatar.svg", c.publicURL, c.bucket)
 }
 
 func (c *Client) GetDefaultCover() string {
