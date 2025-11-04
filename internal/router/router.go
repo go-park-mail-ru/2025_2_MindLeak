@@ -29,6 +29,7 @@ func NewRouter(articleHandler *article.Handler, authHandler *auth.Handler, profi
 	router.HandleFunc("/profile", profileHandler.ShowProfileHandler).Methods("GET")      //свой профиль
 	router.HandleFunc("/profile/{id}", profileHandler.ShowProfileHandler).Methods("GET") //чужой профиль
 	router.HandleFunc("/profile", profileHandler.EditProfileHandler).Methods("PUT")
+	router.HandleFunc("/profile/delete", profileHandler.DeleteProfileHandler).Methods("DELETE")
 
 	router.HandleFunc("/uploads/avatar", profileHandler.UploadAvatar).Methods("POST")
 	router.HandleFunc("/delete/avatar", profileHandler.DeleteAvatar).Methods("DELETE")

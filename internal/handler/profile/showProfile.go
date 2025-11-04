@@ -66,6 +66,7 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 		CoverURL:    prof.CoverURL,
 		Name:        prof.Name,
 		AvatarURL:   prof.Avatar,
+		Email:       prof.Email,
 	}
 
 	err = json.Write(w, http.StatusOK, profileOutDto)

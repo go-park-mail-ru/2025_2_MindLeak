@@ -41,7 +41,7 @@ const (
 	FROM profile
 	WHERE user_id = $1
 	`
-	DeleteProfileQuery = `DELETE FROM profile WHERE UserID = $1`
+	DeleteProfileQuery = `DELETE FROM profile WHERE user_id = $1`
 
 	UpdateProfileQuery = `
 	UPDATE profile
@@ -76,7 +76,7 @@ type ProfileRepository interface {
 	CreateProfile(ctx context.Context, UserID uuid.UUID) (models.Profile, error)
 	GetProfile(ctx context.Context, userID uuid.UUID) (models.Profile, error)
 	UpdateProfile(ctx context.Context, profile models.Profile) (models.Profile, error)
-	//DeleteProfile(ctx context.Context, uuid uuid.UUID) error
+	DeleteProfile(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
 type PostgresProfile struct {
@@ -143,6 +143,7 @@ func (p *PostgresProfile) GetProfile(ctx context.Context, userID uuid.UUID) (mod
 	if err != nil {
 		return models.Profile{}, fmt.Errorf("get profile: %w", err)
 	}
+
 	return profile, nil
 }
 
@@ -178,9 +179,16 @@ func (p *PostgresProfile) UpdateProfile(ctx context.Context, prof models.Profile
 	if err != nil {
 		return models.Profile{}, fmt.Errorf("update profile: %w", err)
 	}
+
 	return updated, nil
 }
 
-//func (p *PostgresProfile) DeleteProfile(ctx context.Context, uuid uuid.UUID) error {
-//
-//}
+func (p *PostgresProfile) DeleteProfile(ctx context.Context, userID uuid.UUID) (bool, error) {
+	var flag bool
+	_, err := p.db.ExecContext(ctx, DeleteProfileQuery, userID)
+	if err != nil {
+		return false, fmt.Errorf("delete profile: %w", err)
+	}
+
+	return flag, nil
+}

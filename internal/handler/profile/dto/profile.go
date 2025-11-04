@@ -14,6 +14,7 @@ type ProfileInputDto struct {
 
 	Name   string `json:"name"`
 	Avatar string `json:"avatar"`
+	Email  string `json:"email"`
 }
 
 type ProfileOutputDto struct {
@@ -28,4 +29,5 @@ type ProfileOutputDto struct {
 
 	Name      string `json:"name"`
 	AvatarURL string `json:"avatar_url"`
+	Email     string `json:"email"`
 }

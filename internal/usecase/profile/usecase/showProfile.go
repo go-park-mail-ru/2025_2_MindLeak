@@ -29,6 +29,7 @@ func (u *Usecase) ShowProfile(ctx context.Context, targetUserID uuid.UUID) (dto.
 		CreatedAt:   profile.CreatedAt,
 		Name:        user.Name,
 		Avatar:      user.Avatar,
+		Email:       user.Email,
 	}
 
 	return out, nil
