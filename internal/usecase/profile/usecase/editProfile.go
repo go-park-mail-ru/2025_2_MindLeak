@@ -52,6 +52,10 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 		oldProfile.Age = newProfile.Age
 		profileChanged = true
 	}
+	if newProfile.Description != "" && newProfile.Description != oldProfile.Description {
+		oldProfile.Description = newProfile.Description
+		profileChanged = true
+	}
 	if newProfile.Language != "" && newProfile.Language != oldProfile.Language {
 		oldProfile.Language = newProfile.Language
 		profileChanged = true

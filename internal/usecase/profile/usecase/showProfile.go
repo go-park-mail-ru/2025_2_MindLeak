@@ -24,6 +24,7 @@ func (u *Usecase) ShowProfile(ctx context.Context, targetUserID uuid.UUID) (dto.
 		Sex:         profile.Sex,
 		DateOfBirth: profile.DateOfBirth.Format("2006-01-02"),
 		Age:         profile.Age,
+		Description: profile.Description,
 		CoverURL:    profile.CoverURL,
 		CreatedAt:   profile.CreatedAt,
 		Name:        user.Name,

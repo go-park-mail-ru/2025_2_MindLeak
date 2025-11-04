@@ -12,6 +12,7 @@ type ProfileDto struct {
 	Sex         models.Sex
 	DateOfBirth string
 	Age         int
+	Description string
 	CoverURL    string
 	CreatedAt   time.Time
 

@@ -62,6 +62,7 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Sex:         prof.Sex,
 		DateOfBirth: prof.DateOfBirth,
 		Age:         prof.Age,
+		Description: prof.Description,
 		CoverURL:    prof.CoverURL,
 		Name:        prof.Name,
 		AvatarURL:   prof.Avatar,

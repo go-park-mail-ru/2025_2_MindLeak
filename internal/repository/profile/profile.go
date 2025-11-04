@@ -20,10 +20,10 @@ var (
 
 const (
 	CreateProfileQuery = `
-    INSERT INTO profile (user_id, phone, country, language, sex, date_of_birth, age, cover_url)
+    INSERT INTO profile (user_id, phone, country, language, sex, date_of_birth, age, description, cover_url)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING profile_id, user_id, phone, country, language, sex, date_of_birth, age, cover_url, created_at, updated_at
-`
+    RETURNING profile_id, user_id, phone, country, language, sex, date_of_birth, age, description, cover_url, created_at, updated_at
+	`
 	GetProfileQuery = `
 	SELECT 
 	    profile_id,
@@ -34,6 +34,7 @@ const (
 	    sex,
 	    date_of_birth,
 	    age,
+	    description,
 	    cover_url,
 	    created_at,
 	    updated_at
@@ -51,7 +52,8 @@ const (
 		sex = COALESCE($5, sex),
 		date_of_birth = COALESCE($6, date_of_birth),
 		age = COALESCE($7, age),
-		cover_url = COALESCE($8, cover_url),
+		description = COALESCE($8, description),
+		cover_url = COALESCE($9, cover_url),
 		updated_at = CURRENT_TIMESTAMP
 	WHERE user_id = $1
 	RETURNING 
@@ -63,6 +65,7 @@ const (
 	    sex,
 	    date_of_birth,
 	    age,
+	    description,
 	    cover_url,
 	    created_at,
 	    updated_at
@@ -94,9 +97,10 @@ func (p *PostgresProfile) CreateProfile(ctx context.Context, userID uuid.UUID) (
 	defaultPhone := ""
 	defaultCountry := ""
 	defaultLanguage := ""
+	dafaultDescription := ""
 	defaultAge := 0
 
-	err := p.db.QueryRowContext(ctx, CreateProfileQuery, userID, defaultPhone, defaultCountry, defaultLanguage, defaultSex, defaultDate, defaultAge, defaultCover).Scan(
+	err := p.db.QueryRowContext(ctx, CreateProfileQuery, userID, defaultPhone, defaultCountry, defaultLanguage, defaultSex, defaultDate, defaultAge, dafaultDescription, defaultCover).Scan(
 		&profile.Id,
 		&profile.UserID,
 		&profile.Phone,
@@ -105,6 +109,7 @@ func (p *PostgresProfile) CreateProfile(ctx context.Context, userID uuid.UUID) (
 		&profile.Sex,
 		&profile.DateOfBirth,
 		&profile.Age,
+		&profile.Description,
 		&profile.CoverURL,
 		&profile.CreatedAt,
 		&profile.UpdatedAt,
@@ -127,6 +132,7 @@ func (p *PostgresProfile) GetProfile(ctx context.Context, userID uuid.UUID) (mod
 		&profile.Sex,
 		&profile.DateOfBirth,
 		&profile.Age,
+		&profile.Description,
 		&profile.CoverURL,
 		&profile.CreatedAt,
 		&profile.UpdatedAt,
@@ -150,6 +156,7 @@ func (p *PostgresProfile) UpdateProfile(ctx context.Context, prof models.Profile
 		prof.Sex,
 		prof.DateOfBirth,
 		prof.Age,
+		prof.Description,
 		prof.CoverURL,
 	).Scan(
 		&updated.Id,
@@ -160,6 +167,7 @@ func (p *PostgresProfile) UpdateProfile(ctx context.Context, prof models.Profile
 		&updated.Sex,
 		&updated.DateOfBirth,
 		&updated.Age,
+		&updated.Description,
 		&updated.CoverURL,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,

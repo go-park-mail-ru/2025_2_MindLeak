@@ -8,6 +8,8 @@ type ProfileInputDto struct {
 	Language    string     `json:"language"`
 	Sex         models.Sex `json:"sex"`
 	DateOfBirth string     `json:"date_of_birth"`
+	Age         int        `json:"age"`
+	Description string     `json:"description"`
 	Cover       string     `json:"cover"`
 
 	Name   string `json:"name"`
@@ -21,6 +23,7 @@ type ProfileOutputDto struct {
 	Sex         models.Sex `json:"sex"`
 	DateOfBirth string     `json:"date_of_birth"`
 	Age         int        `json:"age"`
+	Description string     `json:"description"`
 	CoverURL    string     `json:"cover_url"`
 
 	Name      string `json:"name"`

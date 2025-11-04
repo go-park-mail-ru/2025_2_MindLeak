@@ -59,6 +59,8 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Language:    inputDto.Language,
 		Sex:         inputDto.Sex,
 		DateOfBirth: dob,
+		Age:         inputDto.Age,
+		Description: inputDto.Description,
 		CoverURL:    inputDto.Cover,
 	}
 
@@ -76,6 +78,7 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Sex:         newProfile.Sex,
 		DateOfBirth: newProfile.DateOfBirth.Format("2006-01-02"),
 		Age:         newProfile.Age,
+		Description: newProfile.Description,
 		CoverURL:    newProfile.CoverURL,
 
 		Name:      newUser.Name,
