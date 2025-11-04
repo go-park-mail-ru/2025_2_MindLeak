@@ -19,10 +19,11 @@ type Article struct {
 	AuthorID     uuid.UUID     `db:"author_id"`
 	Title        string        `db:"title"`
 	Content      string        `db:"content"`
-	ImageURL     string        `db:"image_url"`
 	Status       ArticleStatus `db:"status"`
 	CreatedAt    time.Time     `db:"created_at"`
 	UpdatedAt    time.Time     `db:"updated_at"`
 	AuthorName   string        `db:"-"`
 	AuthorAvatar string        `db:"-"`
+
+	Topic Topic `db:"-"`
 }

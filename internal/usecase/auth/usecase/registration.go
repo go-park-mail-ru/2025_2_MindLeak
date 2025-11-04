@@ -14,41 +14,41 @@ import (
 func (u *Usecase) Registration(ctx context.Context, user models.User) (dto.RegisteredUserDto, uuid.UUID, error) {
 
 	if err := validateEmail(user.Email); err != nil {
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	if err := validatePassword(user.Password); err != nil {
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	if err := validateName(user.Name); err != nil {
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	newUser, err := u.userRepo.CreateUser(ctx, user.Email, user.Password, user.Name)
 	if err != nil {
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	_, err = u.profileRepo.CreateProfile(ctx, newUser.Id)
 	if err != nil {
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	_, err = u.sessionRepo.SetSessionUserId(ctx, session.SessionId, newUser.Id)
 	if err != nil {
-		logger.Error(ctx, err.Error(), nil)
+		logger.Error(ctx, err.Error())
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 

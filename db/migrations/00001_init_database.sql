@@ -2,9 +2,6 @@
 -- +goose StatementBegin
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- =======================
--- 👤 Пользователи
--- =======================
 CREATE TABLE "user" (
                         user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         email TEXT NOT NULL UNIQUE,
@@ -15,9 +12,6 @@ CREATE TABLE "user" (
                         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =======================
--- 🧩 Профиль пользователя
--- =======================
 CREATE TABLE profile (
                          profile_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          user_id UUID NOT NULL UNIQUE REFERENCES "user"(user_id) ON DELETE CASCADE,
@@ -27,30 +21,30 @@ CREATE TABLE profile (
                          sex TEXT DEFAULT 'undefined',
                          date_of_birth DATE,
                          age INT,
+                         description TEXT,
                          cover_url TEXT,
                          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =======================
--- 📰 Статьи
--- =======================
 CREATE TYPE article_status AS ENUM ('draft', 'published', 'archived');
+
+CREATE TABLE topic (
+  topic_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL UNIQUE
+);
 
 CREATE TABLE article (
                          article_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          author_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
                          title TEXT NOT NULL,
                          content TEXT NOT NULL,
-                         image_url TEXT,
+                         topic_id UUID NOT NULL REFERENCES topic(topic_id) ON DELETE NO ACTION,
                          status article_status NOT NULL DEFAULT 'draft',
                          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =======================
--- 💬 Комментарии
--- =======================
 CREATE TABLE comment (
                          comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          article_id UUID NOT NULL REFERENCES article(article_id) ON DELETE CASCADE,
@@ -60,9 +54,6 @@ CREATE TABLE comment (
                          updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =======================
--- ❤️ Лайки статей
--- =======================
 CREATE TABLE article_like (
                               user_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
                               article_id UUID NOT NULL REFERENCES article(article_id) ON DELETE CASCADE,
@@ -70,9 +61,6 @@ CREATE TABLE article_like (
                               PRIMARY KEY (user_id, article_id)
 );
 
--- =======================
--- 📎 Медиа-вложения
--- =======================
 CREATE TYPE media_type AS ENUM ('image', 'video', 'audio', 'document', 'other');
 
 CREATE TABLE media (
@@ -87,9 +75,6 @@ CREATE TABLE media (
                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- =======================
--- ⚙️ Триггеры и функция updated_at
--- =======================
 CREATE OR REPLACE FUNCTION update_updated_at()
     RETURNS TRIGGER AS $$
 BEGIN

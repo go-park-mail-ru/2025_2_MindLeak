@@ -46,8 +46,6 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Write(w, http.StatusCreated, userOutputDto)
 	if err != nil {
-		code, msg := h.handleError(err)
-		json.WriteError(w, code, msg)
 		logger.Error(ctx, err.Error())
 		return
 	}

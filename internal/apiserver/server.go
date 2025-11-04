@@ -13,11 +13,14 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	articleUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/article/usecase"
 	authUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/usecase"
+	categoryUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/categories/usecase"
 	profileUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/profile/usecase"
 
 	articleHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
 	authHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
+	categoryHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
 	profileHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/profile"
@@ -79,12 +82,14 @@ func New(config *server.Config) (*Server, error) {
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo)
 	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo, minioClient)
 	authUsecase := authUsecase.NewAuthUsecase(userRepo, sessionRepo, profileRepo)
+	categoryUsecase := categoryUsecase.NewCategoriesUsecase(articleRepo)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)
 	authHandler := authHandler.NewAuthHandler(authUsecase)
 	profileHandler := profileHandler.NewProfileHandler(profileUsecase)
+	categoryHandler := categoryHandler.NewCategoriesHandler(categoryUsecase)
 
-	mux := router.NewRouter(articleHandler, authHandler, profileHandler)
+	mux := router.NewRouter(articleHandler, authHandler, profileHandler, categoryHandler)
 
 	handler := middleware.CORSMiddleware(mux)
 	handler = middleware.RecoverMiddleware(handler)

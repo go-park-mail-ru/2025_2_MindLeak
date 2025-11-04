@@ -49,9 +49,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = json.Write(w, http.StatusOK, userOutputDto); err != nil {
-		code, msg := h.handleError(err)
 		logger.Error(ctx, "[auth.Me] failed to write response: %v", err)
-		json.WriteError(w, code, msg)
 		return
 	}
 

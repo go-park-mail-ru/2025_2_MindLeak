@@ -3,13 +3,14 @@ package router
 import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/swagger"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
 	"github.com/gorilla/mux"
 )
 
-func NewRouter(articleHandler *article.Handler, authHandler *auth.Handler, profileHandler *profile.Handler) *mux.Router {
+func NewRouter(articleHandler *article.Handler, authHandler *auth.Handler, profileHandler *profile.Handler, categoryHandler *categories.Handler) *mux.Router {
 	router := mux.NewRouter()
 
 	router.Use(middleware.RecoverMiddleware)
@@ -33,6 +34,8 @@ func NewRouter(articleHandler *article.Handler, authHandler *auth.Handler, profi
 	router.HandleFunc("/delete/avatar", profileHandler.DeleteAvatar).Methods("DELETE")
 	router.HandleFunc("/uploads/cover", profileHandler.UploadCover).Methods("POST")
 	router.HandleFunc("/delete/cover", profileHandler.DeleteCover).Methods("DELETE")
+
+	router.HandleFunc("/feed/category", categoryHandler.CategoriesHandler).Methods("GET")
 
 	return router
 }
