@@ -23,7 +23,8 @@ func (h *Handler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	posts, err := h.Usecase.GetFeedByTopic(ctx, topic, offsetInt)
 	if err != nil {
 		logger.Error(ctx, err.Error())
-		json.WriteError(w, http.StatusBadRequest, err.Error())
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
 		return
 	}
 

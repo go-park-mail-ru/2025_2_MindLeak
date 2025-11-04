@@ -39,6 +39,7 @@ func (h *Handler) DeleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, code, msg)
 	}
 	if flag {
+
 		json.Write(w, http.StatusOK, map[string]string{"message": "logged out"})
 		return
 	}

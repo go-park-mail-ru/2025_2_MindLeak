@@ -47,11 +47,12 @@ CREATE TABLE article (
 
 CREATE TABLE comment (
                          comment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                         article_id UUID NOT NULL REFERENCES article(article_id) ON DELETE CASCADE,
-                         user_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
+                         article_id UUID NOT NULL REFERENCES article(article_id) ON DELETE NO ACTION,
+                         user_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE NO ACTION,
                          content TEXT NOT NULL,
                          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+                         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         reply_to UUID REFERENCES comment(comment_id) ON DELETE NO ACTION
 );
 
 CREATE TABLE article_like (
@@ -74,6 +75,15 @@ CREATE TABLE media (
                        description TEXT,
                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE subscription (
+    follower_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
+    followed_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (follower_id, followed_id),
+    CHECK (follower_id <> followed_id)
+);
+
 
 CREATE OR REPLACE FUNCTION update_updated_at()
     RETURNS TRIGGER AS $$
@@ -110,6 +120,7 @@ DROP TABLE IF EXISTS comment;
 DROP TABLE IF EXISTS article;
 DROP TABLE IF EXISTS profile;
 DROP TABLE IF EXISTS "user";
+DROP TABLE IF EXISTS subscription;
 DROP TABLE IF EXISTS topic;
 DROP TYPE IF EXISTS media_type;
 DROP TYPE IF EXISTS article_status;

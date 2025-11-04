@@ -9,7 +9,7 @@ import (
 func (u *Usecase) GetSession(ctx context.Context, sessionID uuid.UUID) (models.Session, error) {
 	session, err := u.sessionRepo.GetSessionById(ctx, sessionID)
 	if err != nil {
-		return models.Session{}, err
+		return models.Session{}, u.handleError(err)
 	}
 
 	return session, nil

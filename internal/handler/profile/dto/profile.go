@@ -26,6 +26,7 @@ type ProfileOutputDto struct {
 	Age         int        `json:"age"`
 	Description string     `json:"description"`
 	CoverURL    string     `json:"cover_url"`
+	CreatedAt   string     `json:"created_at"`
 
 	Name      string `json:"name"`
 	AvatarURL string `json:"avatar_url"`

@@ -9,7 +9,7 @@ func (u *Usecase) GetFeedByTopic(ctx context.Context, topic string, offset int) 
 
 	articles, err := u.articleRepo.GetArticlesByTopic(ctx, topic, offset)
 	if err != nil {
-		return nil, err
+		return nil, u.handleError(err)
 	}
 
 	return articles, nil

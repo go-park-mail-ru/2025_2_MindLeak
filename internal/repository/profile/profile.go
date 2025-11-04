@@ -97,10 +97,10 @@ func (p *PostgresProfile) CreateProfile(ctx context.Context, userID uuid.UUID) (
 	defaultPhone := ""
 	defaultCountry := ""
 	defaultLanguage := ""
-	dafaultDescription := ""
+	defaultDescription := ""
 	defaultAge := 0
 
-	err := p.db.QueryRowContext(ctx, CreateProfileQuery, userID, defaultPhone, defaultCountry, defaultLanguage, defaultSex, defaultDate, defaultAge, dafaultDescription, defaultCover).Scan(
+	err := p.db.QueryRowContext(ctx, CreateProfileQuery, userID, defaultPhone, defaultCountry, defaultLanguage, defaultSex, defaultDate, defaultAge, defaultDescription, defaultCover).Scan(
 		&profile.Id,
 		&profile.UserID,
 		&profile.Phone,

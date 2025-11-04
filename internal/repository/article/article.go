@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/google/uuid"
@@ -45,13 +46,17 @@ func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, tit
 		&a.Status, &a.CreatedAt, &a.UpdatedAt,
 	)
 	if err != nil {
+		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("create article: %w", err)
 	}
 
 	if err := r.loadTopic(ctx, &a); err != nil {
+		logger.Error(ctx, err.Error())
+
 		return nil, fmt.Errorf("load topic: %w", err)
 	}
 	if err := r.loadAuthor(ctx, &a); err != nil {
+		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("load author: %w", err)
 	}
 
@@ -78,9 +83,11 @@ func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (*models
 		&a.AuthorName, &a.AuthorAvatar,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
+		logger.Error(ctx, err.Error())
 		return nil, ErrArticleNotFound
 	}
 	if err != nil {
+		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("get article by id: %w", err)
 	}
 
@@ -102,6 +109,7 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 
 	rows, err := r.db.QueryContext(ctx, query, authorID)
 	if err != nil {
+		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("get articles by author: %w", err)
 	}
 	defer rows.Close()
@@ -115,6 +123,7 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 			&a.Topic.TopicId, &a.Topic.Title,
 			&a.AuthorName, &a.AuthorAvatar,
 		); err != nil {
+			logger.Error(ctx, err.Error())
 			return nil, err
 		}
 		a.AuthorID = authorID
@@ -140,6 +149,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 
 	rows, err := r.db.QueryContext(ctx, query, feed.Offset)
 	if err != nil {
+		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("get feed articles: %w", err)
 	}
 	defer rows.Close()
@@ -153,6 +163,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 			&a.Topic.TopicId, &a.Topic.Title,
 			&a.AuthorName, &a.AuthorAvatar,
 		); err != nil {
+			logger.Error(ctx, err.Error())
 			return nil, err
 		}
 		articles = append(articles, &a)
@@ -177,6 +188,7 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 
 	rows, err := r.db.QueryContext(ctx, query, topicTitle, offset)
 	if err != nil {
+		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("get articles by topic: %w", err)
 	}
 	defer rows.Close()
@@ -190,6 +202,7 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 			&a.Topic.TopicId, &a.Topic.Title,
 			&a.AuthorName, &a.AuthorAvatar,
 		); err != nil {
+			logger.Error(ctx, err.Error())
 			return nil, err
 		}
 		articles = append(articles, &a)
@@ -202,11 +215,13 @@ func (r *ArticleRepo) DeleteArticle(ctx context.Context, id uuid.UUID) (bool, er
 	query := `DELETE FROM article WHERE article_id = $1`
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
+		logger.Error(ctx, err.Error())
 		return false, fmt.Errorf("delete article: %w", err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
+		logger.Error(ctx, err.Error())
 		return false, fmt.Errorf("rows affected: %w", err)
 	}
 

@@ -9,12 +9,12 @@ import (
 func (u *Usecase) ShowProfile(ctx context.Context, targetUserID uuid.UUID) (dto.ProfileDto, error) {
 	profile, err := u.profileRepo.GetProfile(ctx, targetUserID)
 	if err != nil {
-		return dto.ProfileDto{}, err
+		return dto.ProfileDto{}, u.handleError(err)
 	}
 
 	user, err := u.userRepo.GetUserById(ctx, targetUserID)
 	if err != nil {
-		return dto.ProfileDto{}, err
+		return dto.ProfileDto{}, u.handleError(err)
 	}
 
 	out := dto.ProfileDto{

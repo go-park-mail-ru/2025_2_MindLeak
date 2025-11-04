@@ -9,19 +9,19 @@ import (
 func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfile models.Profile, newUser models.User) (models.Profile, models.User, error) {
 	session, err := u.sessionRepo.GetSessionById(ctx, sessionID)
 	if err != nil {
-		return models.Profile{}, models.User{}, err
+		return models.Profile{}, models.User{}, u.handleError(err)
 	}
 
 	userID := session.UserId
 
 	oldProfile, err := u.profileRepo.GetProfile(ctx, userID)
 	if err != nil {
-		return models.Profile{}, models.User{}, err
+		return models.Profile{}, models.User{}, u.handleError(err)
 	}
 
 	oldUser, err := u.userRepo.GetUserById(ctx, userID)
 	if err != nil {
-		return models.Profile{}, models.User{}, err
+		return models.Profile{}, models.User{}, u.handleError(err)
 	}
 
 	profileChanged := false
@@ -77,7 +77,7 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 	if profileChanged {
 		updatedProfile, err = u.profileRepo.UpdateProfile(ctx, oldProfile)
 		if err != nil {
-			return models.Profile{}, models.User{}, err
+			return models.Profile{}, models.User{}, u.handleError(err)
 		}
 	} else {
 		updatedProfile = oldProfile
@@ -86,7 +86,7 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 	if userChanged {
 		updatedUser, err = u.userRepo.UpdateUser(ctx, oldUser)
 		if err != nil {
-			return models.Profile{}, models.User{}, err
+			return models.Profile{}, models.User{}, u.handleError(err)
 		}
 	} else {
 		updatedUser = oldUser
