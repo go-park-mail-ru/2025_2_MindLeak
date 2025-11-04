@@ -21,7 +21,7 @@ var (
 const (
 	CreateProfileQuery = `
     INSERT INTO profile (user_id, phone, country, language, sex, date_of_birth, age, description, cover_url)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING profile_id, user_id, phone, country, language, sex, date_of_birth, age, description, cover_url, created_at, updated_at
 	`
 	GetProfileQuery = `
