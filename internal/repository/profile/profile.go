@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
 	"github.com/google/uuid"
 	"time"
 )
@@ -78,10 +78,10 @@ type ProfileRepository interface {
 
 type PostgresProfile struct {
 	db    *sql.DB
-	minio minio.MinioConfig
+	minio *minio_client.Client
 }
 
-func NewPostgresProfile(db *sql.DB, minio minio.MinioConfig) *PostgresProfile {
+func NewPostgresProfile(db *sql.DB, minio *minio_client.Client) *PostgresProfile {
 	return &PostgresProfile{db: db, minio: minio}
 }
 

@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
 	"github.com/lib/pq"
 
 	"github.com/google/uuid"
@@ -48,10 +49,10 @@ type UserRepository interface {
 
 type PostgresUser struct {
 	db    *sql.DB
-	minio minio.MinioConfig
+	minio *minio_client.Client
 }
 
-func NewPostgresUser(db *sql.DB, minio minio.MinioConfig) *PostgresUser {
+func NewPostgresUser(db *sql.DB, minio *minio_client.Client) *PostgresUser {
 	return &PostgresUser{db: db, minio: minio}
 }
 

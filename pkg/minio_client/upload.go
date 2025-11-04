@@ -3,19 +3,40 @@ package minio_client
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 	"mime/multipart"
 	"path/filepath"
-
-	minioSDK "github.com/minio/minio-go/v7"
 )
 
-func (c *Client) Upload(ctx context.Context, folder string, file multipart.File, filename string) (string, error) {
-	object := fmt.Sprintf("%s/%s", folder, filepath.Base(filename))
-
-	_, err := c.sdk.PutObject(ctx, c.bucket, object, file, -1, minioSDK.PutObjectOptions{})
-	if err != nil {
-		return "", fmt.Errorf("upload file: %w", err)
+func (c *Client) UploadAvatar(ctx context.Context, userID uuid.UUID, file multipart.File, header *multipart.FileHeader) (string, error) {
+	if err := validateImage(header); err != nil {
+		return "", err
 	}
 
-	return fmt.Sprintf("%s/%s/%s", c.publicURL, c.bucket, object), nil
+	filename := fmt.Sprintf("avatars/%s%s", userID, filepath.Ext(header.Filename))
+	_, err := c.sdk.PutObject(ctx, c.bucket, filename, file, header.Size, minio.PutObjectOptions{
+		ContentType: header.Header.Get("Content-Type"),
+	})
+	if err != nil {
+		return "", fmt.Errorf("upload avatar: %w", err)
+	}
+
+	return fmt.Sprintf("%s/%s/%s", c.publicURL, c.bucket, filename), nil
+}
+
+func (c *Client) UploadCover(ctx context.Context, userID uuid.UUID, file multipart.File, header *multipart.FileHeader) (string, error) {
+	if err := validateImage(header); err != nil {
+		return "", err
+	}
+
+	filename := fmt.Sprintf("covers/%s%s", userID, filepath.Ext(header.Filename))
+	_, err := c.sdk.PutObject(ctx, c.bucket, filename, file, header.Size, minio.PutObjectOptions{
+		ContentType: header.Header.Get("Content-Type"),
+	})
+	if err != nil {
+		return "", fmt.Errorf("upload cover: %w", err)
+	}
+
+	return fmt.Sprintf("%s/%s/%s", c.publicURL, c.bucket, filename), nil
 }

@@ -8,6 +8,7 @@ import (
 	repoSession "github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 	repoUser "github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
 )
 
 var (
@@ -31,13 +32,15 @@ type Usecase struct {
 	sessionRepo session.SessionRepository
 	userRepo    user.UserRepository
 	profileRepo profile.ProfileRepository
+	minioClient *minio_client.Client
 }
 
-func NewProfileUsecase(sessionRepo session.SessionRepository, userRepo user.UserRepository, profileRepo profile.ProfileRepository) *Usecase {
+func NewProfileUsecase(sessionRepo session.SessionRepository, userRepo user.UserRepository, profileRepo profile.ProfileRepository, minioClient *minio_client.Client) *Usecase {
 	return &Usecase{
 		sessionRepo: sessionRepo,
 		userRepo:    userRepo,
 		profileRepo: profileRepo,
+		minioClient: minioClient,
 	}
 }
 

@@ -59,7 +59,7 @@ func New(config *server.Config) (*Server, error) {
 
 	//INITIALIZE MINIO
 	minioCfg := minio.NewMinioConfig()
-	_, err = minio_client.NewClient(
+	minioClient, err := minio_client.NewClient(
 		minioCfg.Endpoint,
 		minioCfg.User,
 		minioCfg.Password,
@@ -72,12 +72,12 @@ func New(config *server.Config) (*Server, error) {
 	logger.Info(nil, "MinIO client initialized")
 
 	sessionRepo := session.NewRedisSessionManager(RedisConfig.GetPool())
-	userRepo := user.NewPostgresUser(DB, *minioCfg)
+	userRepo := user.NewPostgresUser(DB, minioClient)
 	articleRepo := article.NewArticleRepo(DB)
-	profileRepo := profile.NewPostgresProfile(DB, *minioCfg)
+	profileRepo := profile.NewPostgresProfile(DB, minioClient)
 
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo)
-	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo)
+	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo, minioClient)
 	authUsecase := authUsecase.NewAuthUsecase(userRepo, sessionRepo, profileRepo)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)

@@ -16,19 +16,19 @@ var decoder = schema.NewDecoder()
 
 func (h *Handler) Feed(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	logger.Info(ctx, "[article.Feed] handler start")
+	logger.Info(ctx, "handler start")
 
 	decoder.IgnoreUnknownKeys(true)
 
 	feedInputDTO := &dto.FeedInputDTO{}
 	if err := decoder.Decode(feedInputDTO, r.URL.Query()); err != nil {
-		logger.Error(ctx, "[article.Feed] failed to decode query params: %v", err)
+		logger.Error(ctx, "failed to decode query params: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
 	}
 
-	logger.Info(ctx, "[article.Feed] decoded params: offset=%d", feedInputDTO.Offset)
+	logger.Info(ctx, "decoded params: offset=%d", feedInputDTO.Offset)
 
 	feedEntity := &models.Feed{
 		Offset: feedInputDTO.Offset,
@@ -36,22 +36,22 @@ func (h *Handler) Feed(w http.ResponseWriter, r *http.Request) {
 
 	output, err := h.Usecase.Feed(ctx, *feedEntity)
 	if err != nil {
-		logger.Error(ctx, "[article.Feed] usecase.Feed error: %v", err)
+		logger.Error(ctx, "usecase.Feed error: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
 	}
 
-	logger.Info(ctx, "[article.Feed] usecase.Feed success, preparing response")
+	logger.Info(ctx, "usecase.Feed success, preparing response")
 
 	feedOutputDto := toOutputDTO(output)
 
 	if err = json.Write(w, http.StatusOK, feedOutputDto); err != nil {
-		logger.Error(ctx, "[article.Feed] failed to write response: %v", err)
+		logger.Error(ctx, "failed to write response: %v", err)
 		return
 	}
 
-	logger.Info(ctx, "[article.Feed] handler finished successfully")
+	logger.Info(ctx, "handler finished successfully")
 }
 
 func toOutputDTO(usecaseDto usecaseDTO.ReceivedFeedDTO) dto.FeedOutputDTO {
