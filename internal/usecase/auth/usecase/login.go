@@ -42,6 +42,7 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 	}
 
 	outDto := dto.RegisteredUserDto{
+		Id:     user.Id,
 		Email:  user.Email,
 		Name:   user.Name,
 		Avatar: user.Avatar,

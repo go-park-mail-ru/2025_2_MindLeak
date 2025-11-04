@@ -22,7 +22,7 @@ func (c *Client) UploadAvatar(ctx context.Context, userID uuid.UUID, file multip
 		return "", fmt.Errorf("upload avatar: %w", err)
 	}
 
-	return fmt.Sprintf("%s/%s/%s", c.publicURL, c.bucket, filename), nil
+	return fmt.Sprintf("https://mindleak.ru/%s/%s/%s", c.publicURL, c.bucket, filename), nil
 }
 
 func (c *Client) UploadCover(ctx context.Context, userID uuid.UUID, file multipart.File, header *multipart.FileHeader) (string, error) {
@@ -38,5 +38,5 @@ func (c *Client) UploadCover(ctx context.Context, userID uuid.UUID, file multipa
 		return "", fmt.Errorf("upload cover: %w", err)
 	}
 
-	return fmt.Sprintf("%s/%s/%s", c.publicURL, c.bucket, filename), nil
+	return fmt.Sprintf("https://mindleak.ru/%s/%s/%s", c.publicURL, c.bucket, filename), nil
 }

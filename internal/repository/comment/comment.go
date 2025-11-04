@@ -95,12 +95,12 @@ func NewPostgresComment(db *sql.DB) *PostgresComment {
 func (r *PostgresComment) CreateComment(ctx context.Context, comment models.Comment) (models.Comment, error) {
 	var model models.Comment
 
-	var err error
+	//var err error
 
 	var replyTo sql.NullString
 
 	if comment.ReplyTo != nil {
-		err = r.db.QueryRowContext(
+		err := r.db.QueryRowContext(
 			ctx,
 			CreateResponseCommentQuery,
 			comment.ArticleId,
@@ -118,12 +118,18 @@ func (r *PostgresComment) CreateComment(ctx context.Context, comment models.Comm
 			&model.UpdatedAt,
 			&replyTo,
 		)
+		if err != nil {
+			logger.Error(ctx, err.Error())
+			return models.Comment{}, ErrCreatingComment
+		}
 		if replyTo.Valid {
 			u, _ := uuid.Parse(replyTo.String)
 			model.ReplyTo = &u
+		} else {
+			model.ReplyTo = nil
 		}
 	} else {
-		err = r.db.QueryRowContext(
+		err := r.db.QueryRowContext(
 			ctx,
 			CreateCommentQuery,
 			comment.ArticleId,
@@ -139,12 +145,11 @@ func (r *PostgresComment) CreateComment(ctx context.Context, comment models.Comm
 			&model.CreatedAt,
 			&model.UpdatedAt,
 		)
+		if err != nil {
+			logger.Error(ctx, err.Error())
+			return models.Comment{}, ErrCreatingComment
+		}
 
-	}
-
-	if err != nil {
-		logger.Error(ctx, err.Error())
-		return models.Comment{}, ErrCreatingComment
 	}
 
 	if err := r.resolveAuthor(ctx, &model); err != nil {
@@ -194,6 +199,8 @@ func (r *PostgresComment) GetCommentsByAuthor(ctx context.Context, authorId uuid
 		if replyTo.Valid {
 			u, _ := uuid.Parse(replyTo.String)
 			comment.ReplyTo = &u
+		} else {
+			comment.ReplyTo = nil
 		}
 
 		comments = append(comments, comment)
@@ -237,6 +244,8 @@ func (r *PostgresComment) GetCommentsByArticle(ctx context.Context, articleId uu
 		if replyTo.Valid {
 			u, _ := uuid.Parse(replyTo.String)
 			comment.ReplyTo = &u
+		} else {
+			comment.ReplyTo = nil
 		}
 
 		comments = append(comments, comment)
@@ -282,6 +291,8 @@ func (r *PostgresComment) UpdateComment(ctx context.Context, comment models.Comm
 	if replyTo.Valid {
 		u, _ := uuid.Parse(replyTo.String)
 		updated.ReplyTo = &u
+	} else {
+		comment.ReplyTo = nil
 	}
 
 	return updated, nil

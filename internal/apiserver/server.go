@@ -5,6 +5,8 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/postgres"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/redis"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/comment"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/subscriptions"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
@@ -14,12 +16,16 @@ import (
 	articleUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/article/usecase"
 	authUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/usecase"
 	categoryUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/categories/usecase"
+	commentUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/comment/usecase"
 	profileUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/profile/usecase"
+	subsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/topBlogs/usecase"
 
 	articleHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
 	authHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
 	categoryHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
+	commentHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/comment"
 	profileHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
+	subsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/topBlogs"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
@@ -78,18 +84,24 @@ func New(config *server.Config) (*Server, error) {
 	userRepo := user.NewPostgresUser(DB, minioClient)
 	articleRepo := article.NewArticleRepo(DB)
 	profileRepo := profile.NewPostgresProfile(DB, minioClient)
+	subsRepo := subscriptions.NewPostgresSubscription(DB)
+	commentRepo := comment.NewPostgresComment(DB)
 
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo)
 	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo, minioClient)
 	authUsecase := authUsecase.NewAuthUsecase(userRepo, sessionRepo, profileRepo)
 	categoryUsecase := categoryUsecase.NewCategoriesUsecase(articleRepo)
+	subsUsecase := subsUsecase.NewTopBlogsUsecase(subsRepo)
+	commentUsecase := commentUsecase.NewCommentUsecase(commentRepo, sessionRepo)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)
 	authHandler := authHandler.NewAuthHandler(authUsecase)
 	profileHandler := profileHandler.NewProfileHandler(profileUsecase)
 	categoryHandler := categoryHandler.NewCategoriesHandler(categoryUsecase)
+	subsHandler := subsHandler.NewTopBlogsHandler(subsUsecase)
+	commentHandler := commentHandler.NewCommentHandler(commentUsecase)
 
-	mux := router.NewRouter(articleHandler, authHandler, profileHandler, categoryHandler)
+	mux := router.NewRouter(articleHandler, authHandler, profileHandler, categoryHandler, subsHandler, commentHandler)
 
 	handler := middleware.CORSMiddleware(mux)
 	handler = middleware.RecoverMiddleware(handler)

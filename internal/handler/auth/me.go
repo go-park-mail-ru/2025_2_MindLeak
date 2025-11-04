@@ -43,6 +43,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	logger.Info(ctx, "usecase.Me success, preparing response")
 
 	userOutputDto := &dto.UserOutputMe{
+		Id:     output.Id,
 		Email:  output.Email,
 		Name:   output.Name,
 		Avatar: output.Avatar,

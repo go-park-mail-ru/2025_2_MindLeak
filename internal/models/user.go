@@ -8,4 +8,7 @@ type User struct {
 	Password string    `db:"password"`
 	Name     string    `db:"name"`
 	Avatar   string    `db:"avatar"`
+
+	Subscribers   int `db:"subscribers"`
+	Subscriptions int `db:"subscriptions"`
 }

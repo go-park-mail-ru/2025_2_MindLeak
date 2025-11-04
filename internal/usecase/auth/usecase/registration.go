@@ -53,6 +53,7 @@ func (u *Usecase) Registration(ctx context.Context, user models.User) (dto.Regis
 	}
 
 	outDto := dto.RegisteredUserDto{
+		Id:     newUser.Id,
 		Email:  newUser.Email,
 		Name:   newUser.Name,
 		Avatar: newUser.Avatar,

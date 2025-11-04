@@ -16,7 +16,9 @@ type ProfileDto struct {
 	CoverURL    string
 	CreatedAt   time.Time
 
-	Name   string
-	Avatar string
-	Email  string
+	Name          string
+	Avatar        string
+	Email         string
+	Subscribers   int
+	Subscriptions int
 }

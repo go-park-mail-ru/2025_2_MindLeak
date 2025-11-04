@@ -23,6 +23,7 @@ func (u *Usecase) Me(ctx context.Context, sessionID uuid.UUID) (dto.RegisteredUs
 	}
 
 	outDto := dto.RegisteredUserDto{
+		Id:     user.Id,
 		Email:  user.Email,
 		Name:   user.Name,
 		Avatar: user.Avatar,

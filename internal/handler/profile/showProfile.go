@@ -56,18 +56,20 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	profileOutDto := dto.ProfileOutputDto{
-		Phone:       prof.Phone,
-		Country:     prof.Country,
-		Language:    prof.Language,
-		Sex:         prof.Sex,
-		DateOfBirth: prof.DateOfBirth,
-		Age:         prof.Age,
-		Description: prof.Description,
-		CoverURL:    prof.CoverURL,
-		Name:        prof.Name,
-		AvatarURL:   prof.Avatar,
-		Email:       prof.Email,
-		CreatedAt:   prof.CreatedAt.Format("2006-01-02"),
+		Phone:         prof.Phone,
+		Country:       prof.Country,
+		Language:      prof.Language,
+		Sex:           prof.Sex,
+		DateOfBirth:   prof.DateOfBirth,
+		Age:           prof.Age,
+		Description:   prof.Description,
+		CoverURL:      prof.CoverURL,
+		Name:          prof.Name,
+		AvatarURL:     prof.Avatar,
+		Email:         prof.Email,
+		CreatedAt:     prof.CreatedAt.Format("2006-01-02"),
+		Subscribers:   prof.Subscribers,
+		Subscriptions: prof.Subscriptions,
 	}
 
 	err = json.Write(w, http.StatusOK, profileOutDto)

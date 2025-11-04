@@ -23,19 +23,51 @@ var (
 )
 
 const (
-	CreateUserQuery     = `INSERT INTO "user" (email, password, name, avatar) VALUES ($1, $2, $3, $4)`
-	GetUserByIdQuery    = `SELECT user_id, email, password, name, avatar FROM "user" WHERE user_id=$1`
-	GetUserByEmailQuery = `SELECT user_id, email, password, name, avatar FROM "user" WHERE email=$1`
-	GetAllUsersQuery    = `SELECT user_id, email, password, name, avatar FROM "user"`
-	DeleteUserQuery     = `DELETE FROM "user" WHERE user_id=$1`
-	UpdateUserQuery     = `
-    UPDATE "user"
-    SET
-        name = $2,
-        avatar = $3,
-        updated_at = NOW()
-    WHERE user_id = $1
-    RETURNING user_id, email, password, name, avatar;`
+	CreateUserQuery  = `INSERT INTO "user" (email, password, name, avatar) VALUES ($1, $2, $3, $4)`
+	GetUserByIdQuery = `
+		SELECT 
+			u.user_id, u.email, u.password, u.name, u.avatar,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
+			COUNT(DISTINCT s_following.followed_id) AS subscriptions
+		FROM "user" u
+		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
+		LEFT JOIN subscription s_following ON s_following.follower_id = u.user_id
+		WHERE u.user_id = $1
+		GROUP BY u.user_id;
+	`
+	GetUserByEmailQuery = `
+		SELECT 
+			u.user_id, u.email, u.password, u.name, u.avatar,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
+			COUNT(DISTINCT s_following.followed_id) AS subscriptions
+		FROM "user" u
+		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
+		LEFT JOIN subscription s_following ON s_following.follower_id = u.user_id
+		WHERE u.email = $1
+		GROUP BY u.user_id;
+	`
+	GetAllUsersQuery = `
+		SELECT 
+			u.user_id, u.email, u.password, u.name, u.avatar,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
+			COUNT(DISTINCT s_following.followed_id) AS subscriptions
+		FROM "user" u
+		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
+		LEFT JOIN subscription s_following ON s_following.follower_id = u.user_id
+		GROUP BY u.user_id;
+	`
+	DeleteUserQuery = `DELETE FROM "user" WHERE user_id=$1`
+	UpdateUserQuery = `
+		UPDATE "user"
+		SET
+			name = $2,
+			avatar = $3,
+			updated_at = NOW()
+		WHERE user_id = $1
+		RETURNING user_id, email, password, name, avatar,
+			(SELECT COUNT(*) FROM subscription WHERE followed_id = $1) AS subscribers,
+			(SELECT COUNT(*) FROM subscription WHERE follower_id = $1) AS subscriptions;
+	`
 )
 
 type UserRepository interface {
@@ -61,9 +93,9 @@ func (p *PostgresUser) CreateUser(ctx context.Context, email, password, name str
 	defaultAvatar := p.minio.GetDefaultAvatar()
 
 	err := p.db.QueryRowContext(ctx,
-		CreateUserQuery+" RETURNING user_id, email, password, name, avatar",
+		CreateUserQuery+" RETURNING user_id, email, password, name, avatar, 0 AS subscribers, 0 AS subscriptions",
 		email, password, name, defaultAvatar,
-	).Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar)
+	).Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar, &user.Subscribers, &user.Subscriptions)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
@@ -87,6 +119,8 @@ func (p *PostgresUser) GetUserById(ctx context.Context, userID uuid.UUID) (model
 		&user.Password,
 		&user.Name,
 		&user.Avatar,
+		&user.Subscribers,
+		&user.Subscriptions,
 	)
 
 	if err != nil {
@@ -101,7 +135,7 @@ func (p *PostgresUser) GetUserByEmail(ctx context.Context, email string) (models
 	var user models.User
 
 	err := p.db.QueryRowContext(ctx, GetUserByEmailQuery, email).Scan(
-		&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar,
+		&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar, &user.Subscribers, &user.Subscriptions,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -128,7 +162,7 @@ func (p *PostgresUser) GetAllUsers(ctx context.Context) ([]models.User, error) {
 
 	for rows.Next() {
 		var user models.User
-		err = rows.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar)
+		err = rows.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar, &user.Subscribers, &user.Subscriptions)
 		if err != nil {
 			logger.Error(ctx, "Error getting all users: %v", err)
 			return nil, ErrGettingUser
@@ -163,6 +197,8 @@ func (p *PostgresUser) UpdateUser(ctx context.Context, user models.User) (models
 		&updated.Password,
 		&updated.Name,
 		&updated.Avatar,
+		&updated.Subscribers,
+		&updated.Subscriptions,
 	)
 
 	if err != nil {

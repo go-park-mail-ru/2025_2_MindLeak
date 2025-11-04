@@ -1,7 +1,11 @@
 package dto
 
+type TopBlogDto struct {
+	Name        string `json:"name"`
+	Avatar      string `json:"avatar"`
+	Subscribers int    `json:"subscribers"`
+}
+
 type TopBlogsDto struct {
-	Name             string `json:"name"`
-	Avatar           string `json:"avatar"`
-	SubscribersCount int    `json:"subscribers_count"`
+	Blogs []TopBlogDto
 }

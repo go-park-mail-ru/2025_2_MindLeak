@@ -37,6 +37,7 @@ func (h *Handler) Registration(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userOutputDto := &dto.UserOutputRegistration{
+		Id:     output.Id,
 		Email:  output.Email,
 		Name:   output.Name,
 		Avatar: output.Avatar,

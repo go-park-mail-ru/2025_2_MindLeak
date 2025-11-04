@@ -6,5 +6,5 @@ import (
 )
 
 type Usecase interface {
-	ShowTopBlogs(ctx context.Context) (models.Profile, error)
+	ShowTopBlogs(ctx context.Context) ([]models.User, error)
 }

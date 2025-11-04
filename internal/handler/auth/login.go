@@ -36,6 +36,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userOutputDto := &dto.UserOutputLogin{
+		Id:     user.Id,
 		Name:   user.Name,
 		Email:  user.Email,
 		Avatar: user.Avatar,
