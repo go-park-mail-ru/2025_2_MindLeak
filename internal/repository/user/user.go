@@ -62,6 +62,7 @@ const (
 		SET
 			name = $2,
 			avatar = $3,
+			password = $4,
 			updated_at = NOW()
 		WHERE user_id = $1
 		RETURNING user_id, email, password, name, avatar,
@@ -191,6 +192,7 @@ func (p *PostgresUser) UpdateUser(ctx context.Context, user models.User) (models
 		user.Id,
 		user.Name,
 		user.Avatar,
+		user.Password,
 	).Scan(
 		&updated.Id,
 		&updated.Email,
