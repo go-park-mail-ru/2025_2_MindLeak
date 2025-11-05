@@ -2,15 +2,17 @@ package apiserver
 
 import (
 	"fmt"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/postgres"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/redis"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/comment"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/subscriptions"
 
+	"net/http"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
-	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
 	articleUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/article/usecase"
@@ -87,7 +89,7 @@ func New(config *server.Config) (*Server, error) {
 	subsRepo := subscriptions.NewPostgresSubscription(DB)
 	commentRepo := comment.NewPostgresComment(DB)
 
-	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo)
+	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo, minioClient)
 	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo, minioClient)
 	authUsecase := authUsecase.NewAuthUsecase(userRepo, sessionRepo, profileRepo)
 	categoryUsecase := categoryUsecase.NewCategoriesUsecase(articleRepo)

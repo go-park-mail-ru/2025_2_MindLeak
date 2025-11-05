@@ -1,8 +1,9 @@
 package article
 
 import (
-	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"net/http"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
@@ -55,15 +56,14 @@ func (h *Handler) Feed(w http.ResponseWriter, r *http.Request) {
 }
 
 func toOutputDTO(usecaseDto usecaseDTO.ReceivedFeedDTO) dto.FeedOutputDTO {
-	result := make([]dto.ArticleOutputDTO, len(usecaseDto.Articles))
+	result := make([]dto.ArticleOutput, len(usecaseDto.Articles))
 	for i, a := range usecaseDto.Articles {
-		result[i] = dto.ArticleOutputDTO{
-			Id:           a.ID,
-			AuthorId:     a.AuthorID,
+		result[i] = dto.ArticleOutput{
+			ID:           a.ID,
+			AuthorID:     a.AuthorID,
 			Title:        a.Title,
 			Content:      a.Content,
-			CreatedAt:    a.CreatedAt,
-			TopicTitle:   a.Topic.Title,
+			Topic:        a.Topic,
 			AuthorName:   a.AuthorName,
 			AuthorAvatar: a.AuthorAvatar,
 		}

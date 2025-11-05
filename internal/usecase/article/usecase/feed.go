@@ -17,7 +17,7 @@ func (u *Usecase) Feed(ctx context.Context, feed models.Feed) (dto.ReceivedFeedD
 	return toDTO(output), nil
 }
 
-func toDTO(articles []*models.Article) dto.ReceivedFeedDTO {
+func toDTO(articles []models.Article) dto.ReceivedFeedDTO {
 	result := make([]models.Article, len(articles))
 	for i, a := range articles {
 		result[i] = models.Article{

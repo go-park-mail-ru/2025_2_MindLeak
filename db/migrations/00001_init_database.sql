@@ -39,8 +39,12 @@ CREATE TABLE article (
                          author_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
                          title TEXT NOT NULL,
                          content TEXT NOT NULL,
+                         media_url TEXT, 
                          topic_id UUID NOT NULL REFERENCES topic(topic_id) ON DELETE NO ACTION,
                          status article_status NOT NULL DEFAULT 'draft',
+                         comments_count INT,
+                         reposts_count INT,
+                         views_count INT,
                          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

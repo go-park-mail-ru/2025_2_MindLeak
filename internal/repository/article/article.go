@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
@@ -17,12 +18,13 @@ var (
 )
 
 type ArticleRepository interface {
-	CreateArticle(ctx context.Context, authorId uuid.UUID, title, content string, topicId uuid.UUID) (*models.Article, error)
-	GetArticleById(ctx context.Context, id uuid.UUID) (*models.Article, error)
-	GetArticlesByAuthorId(ctx context.Context, authorId uuid.UUID) ([]*models.Article, error)
-	GetFeedArticles(ctx context.Context, feed models.Feed) ([]*models.Article, error)
+	CreateArticle(ctx context.Context, authorId uuid.UUID, title, content string, topicId uuid.UUID) (models.Article, error)
+	GetArticleById(ctx context.Context, id uuid.UUID) (models.Article, error)
+	GetArticlesByAuthorId(ctx context.Context, authorId uuid.UUID) ([]models.Article, error)
+	GetFeedArticles(ctx context.Context, feed models.Feed) ([]models.Article, error)
 	DeleteArticle(ctx context.Context, id uuid.UUID) (bool, error)
-	GetArticlesByTopic(ctx context.Context, topicTitle string, offset int) ([]*models.Article, error)
+	UpdateArticle(ctx context.Context, article models.Article) (models.Article, error)
+	GetArticlesByTopic(ctx context.Context, topicTitle string, offset int) ([]models.Article, error)
 }
 
 type ArticleRepo struct {
@@ -33,7 +35,7 @@ func NewArticleRepo(db *sql.DB) *ArticleRepo {
 	return &ArticleRepo{db: db}
 }
 
-func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string, topicID uuid.UUID) (*models.Article, error) {
+func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string, topicID uuid.UUID) (models.Article, error) {
 	query := `
 		INSERT INTO article (author_id, title, content, topic_id, status)
 		VALUES ($1, $2, $3, $4, 'draft')
@@ -47,23 +49,23 @@ func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, tit
 	)
 	if err != nil {
 		logger.Error(ctx, err.Error())
-		return nil, fmt.Errorf("create article: %w", err)
+		return models.Article{}, fmt.Errorf("create article: %w", err)
 	}
 
 	if err := r.loadTopic(ctx, &a); err != nil {
 		logger.Error(ctx, err.Error())
 
-		return nil, fmt.Errorf("load topic: %w", err)
+		return models.Article{}, fmt.Errorf("load topic: %w", err)
 	}
 	if err := r.loadAuthor(ctx, &a); err != nil {
 		logger.Error(ctx, err.Error())
-		return nil, fmt.Errorf("load author: %w", err)
+		return models.Article{}, fmt.Errorf("load author: %w", err)
 	}
 
-	return &a, nil
+	return a, nil
 }
 
-func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (*models.Article, error) {
+func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (models.Article, error) {
 	query := `
 		SELECT a.article_id, a.author_id, a.title, a.content, 
 		       a.status, a.created_at, a.updated_at,
@@ -84,17 +86,17 @@ func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (*models
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		logger.Error(ctx, err.Error())
-		return nil, ErrArticleNotFound
+		return models.Article{}, ErrArticleNotFound
 	}
 	if err != nil {
 		logger.Error(ctx, err.Error())
-		return nil, fmt.Errorf("get article by id: %w", err)
+		return models.Article{}, fmt.Errorf("get article by id: %w", err)
 	}
 
-	return &a, nil
+	return a, nil
 }
 
-func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.UUID) ([]*models.Article, error) {
+func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.UUID) ([]models.Article, error) {
 	query := `
 		SELECT a.article_id, a.title, a.content, 
 		       a.status, a.created_at, a.updated_at,
@@ -114,7 +116,7 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 	}
 	defer rows.Close()
 
-	var articles []*models.Article
+	var articles []models.Article
 	for rows.Next() {
 		var a models.Article
 		if err := rows.Scan(
@@ -127,13 +129,13 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 			return nil, err
 		}
 		a.AuthorID = authorID
-		articles = append(articles, &a)
+		articles = append(articles, a)
 	}
 
 	return articles, rows.Err()
 }
 
-func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]*models.Article, error) {
+func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]models.Article, error) {
 	query := `
 		SELECT a.article_id, a.author_id, a.title, a.content, 
 		       a.status, a.created_at, a.updated_at,
@@ -154,7 +156,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 	}
 	defer rows.Close()
 
-	var articles []*models.Article
+	var articles []models.Article
 	for rows.Next() {
 		var a models.Article
 		if err := rows.Scan(
@@ -166,13 +168,13 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 			logger.Error(ctx, err.Error())
 			return nil, err
 		}
-		articles = append(articles, &a)
+		articles = append(articles, a)
 	}
 
 	return articles, rows.Err()
 }
 
-func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string, offset int) ([]*models.Article, error) {
+func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string, offset int) ([]models.Article, error) {
 	query := `
 		SELECT a.article_id, a.author_id, a.title, a.content, 
 		       a.status, a.created_at, a.updated_at,
@@ -193,7 +195,7 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 	}
 	defer rows.Close()
 
-	var articles []*models.Article
+	var articles []models.Article
 	for rows.Next() {
 		var a models.Article
 		if err := rows.Scan(
@@ -205,7 +207,7 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 			logger.Error(ctx, err.Error())
 			return nil, err
 		}
-		articles = append(articles, &a)
+		articles = append(articles, a)
 	}
 
 	return articles, rows.Err()
@@ -226,6 +228,51 @@ func (r *ArticleRepo) DeleteArticle(ctx context.Context, id uuid.UUID) (bool, er
 	}
 
 	return rowsAffected > 0, nil
+}
+
+func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article) (models.Article, error) {
+	query := `
+		UPDATE article
+		SET 
+		    title = COALESCE($1, title),
+		    content = COALESCE($2, content),
+		    media_url = COALESCE($3, media_url),
+		    status = COALESCE($4, status),
+		    updated_at = CURRENT_TIMESTAMP
+		WHERE article_id = $5 AND author_id = $6
+		RETURNING 
+		    article_id, author_id, title, content, media_url, topic_id, status,
+		    comments_count, reposts_count, views_count, created_at, updated_at
+	`
+
+	var updated models.Article
+	err := r.db.QueryRowContext(ctx, query,
+		article.Title, article.Content, article.MediaURL, article.Status,
+		article.ID, article.AuthorID,
+	).Scan(
+		&updated.ID, &updated.AuthorID, &updated.Title, &updated.Content, &updated.MediaURL,
+		&updated.TopicID, &updated.Status,
+		&updated.CommentsCount, &updated.RepostsCount, &updated.ViewsCount,
+		&updated.CreatedAt, &updated.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return models.Article{}, ErrArticleNotFound
+	}
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return models.Article{}, fmt.Errorf("update article: %w", err)
+	}
+
+	if err := r.loadTopic(ctx, &updated); err != nil {
+		logger.Error(ctx, err.Error())
+		return models.Article{}, fmt.Errorf("load topic: %w", err)
+	}
+	if err := r.loadAuthor(ctx, &updated); err != nil {
+		logger.Error(ctx, err.Error())
+		return models.Article{}, fmt.Errorf("load author: %w", err)
+	}
+
+	return updated, nil
 }
 
 func (r *ArticleRepo) loadAuthor(ctx context.Context, a *models.Article) error {
