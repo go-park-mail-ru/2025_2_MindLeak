@@ -35,6 +35,7 @@ func (u *Usecase) ShowProfile(ctx context.Context, targetUserID uuid.UUID) (dto.
 		Email:         user.Email,
 		Subscribers:   user.Subscribers,
 		Subscriptions: user.Subscriptions,
+		Password:      user.Password,
 	}
 
 	return out, nil

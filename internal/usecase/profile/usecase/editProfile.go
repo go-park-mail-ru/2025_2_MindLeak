@@ -70,6 +70,10 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 		oldUser.Avatar = newUser.Avatar
 		userChanged = true
 	}
+	if newUser.Password != "" && newUser.Password != oldUser.Password {
+		oldUser.Password = newUser.Password
+		userChanged = true
+	}
 
 	var updatedProfile models.Profile
 	var updatedUser models.User

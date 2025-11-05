@@ -70,6 +70,7 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 		CreatedAt:     prof.CreatedAt.Format("2006-01-02"),
 		Subscribers:   prof.Subscribers,
 		Subscriptions: prof.Subscriptions,
+		Password:      prof.Password,
 	}
 
 	err = json.Write(w, http.StatusOK, profileOutDto)

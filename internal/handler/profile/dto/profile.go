@@ -10,6 +10,7 @@ type ProfileInputDto struct {
 	DateOfBirth string     `json:"date_of_birth"`
 	Age         int        `json:"age"`
 	Description string     `json:"description"`
+	Password    string     `json:"password"`
 	Cover       string     `json:"cover_url"`
 
 	Name   string `json:"name"`
@@ -31,6 +32,7 @@ type ProfileOutputDto struct {
 	Name          string `json:"name"`
 	AvatarURL     string `json:"avatar_url"`
 	Email         string `json:"email"`
+	Password      string `json:"password"`
 	Subscribers   int    `json:"subscribers"`
 	Subscriptions int    `json:"subscriptions"`
 }

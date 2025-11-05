@@ -39,8 +39,9 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userEntity := models.User{
-		Name:   inputDto.Name,
-		Avatar: inputDto.Avatar,
+		Name:     inputDto.Name,
+		Avatar:   inputDto.Avatar,
+		Password: inputDto.Password,
 	}
 
 	var dob time.Time
@@ -83,6 +84,7 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 		Name:      newUser.Name,
 		AvatarURL: newUser.Avatar,
+		Password:  newUser.Password,
 	}
 
 	err = json.Write(w, http.StatusOK, outputDto)

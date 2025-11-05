@@ -21,4 +21,5 @@ type ProfileDto struct {
 	Email         string
 	Subscribers   int
 	Subscriptions int
+	Password      string
 }
