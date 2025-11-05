@@ -2,7 +2,9 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/security"
 	"github.com/google/uuid"
 )
 
@@ -71,7 +73,12 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 		userChanged = true
 	}
 	if newUser.Password != "" && newUser.Password != oldUser.Password {
-		oldUser.Password = newUser.Password
+		hashed, err := security.HashPassword(newUser.Password)
+		if err != nil {
+			return models.Profile{}, models.User{}, u.handleError(err)
+		}
+		hashedStr := fmt.Sprintf("%x", hashed)
+		oldUser.Password = hashedStr
 		userChanged = true
 	}
 
