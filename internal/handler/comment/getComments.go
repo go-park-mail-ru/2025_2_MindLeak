@@ -8,17 +8,6 @@ import (
 	"net/http"
 )
 
-// GetCommentsHandler обрабатывает HTTP-запрос для получения комментариев.
-//
-// Поддерживаются параметры запроса:
-//   - authorId: UUID автора, чьи комментарии нужно получить.
-//   - articleId: UUID статьи, для которой нужно получить комментарии.
-//
-// Если параметры не указаны, то возвращается список комментариев пользователя текущей сессии.
-// Если указаны оба параметра, то возвращается код HTTP 501.
-//
-// Возвращает JSON-массив объектов CommentIODto со статусом 200.
-// В случае ошибок - HTTP 500.
 func (h *Handler) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -37,21 +26,21 @@ func (h *Handler) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "parse articleId: %v", err)
 			return
 		}
 		comments, err := h.Usecase.GetCommentsByArticle(ctx, articleId)
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "get comments by article: %v", err)
 			return
 		}
 
 		outputDto := h.mapSliceToOutputDto(comments)
 
 		if err = json.Write(w, http.StatusOK, outputDto); err != nil {
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "write json (article): %v", err)
 			return
 		}
 	} else if authorIdString != "" {
@@ -59,21 +48,21 @@ func (h *Handler) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "parse authorId: %v", err)
 			return
 		}
 		comments, err := h.Usecase.GetCommentsByArticle(ctx, authorId)
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "get comments by article: %v", err)
 			return
 		}
 
 		outputDto := h.mapSliceToOutputDto(comments)
 
 		if err = json.Write(w, http.StatusOK, outputDto); err != nil {
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "write json (author): %v", err)
 			return
 		}
 	} else {
@@ -97,7 +86,7 @@ func (h *Handler) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "get session: %v", err)
 			return
 		}
 
@@ -107,14 +96,14 @@ func (h *Handler) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "get comments by session author: %v", err)
 			return
 		}
 
 		outputDto := h.mapSliceToOutputDto(comments)
 
 		if err = json.Write(w, http.StatusOK, outputDto); err != nil {
-			logger.Error(ctx, err.Error())
+			logger.Error(ctx, "write json (session): %v", err)
 			return
 		}
 	}

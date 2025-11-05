@@ -2,7 +2,6 @@ package json
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -19,15 +18,14 @@ func Read(r *http.Request, v interface{}) error {
 func Write(w http.ResponseWriter, status int, v interface{}) error {
 	data, err := json.Marshal(v)
 	if err != nil {
-		fmt.Println("[DEBUG] marshal error:", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return err
 	}
-	fmt.Println("[DEBUG] json size:", len(data), "bytes")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	n, err := w.Write(data)
-	fmt.Println("[DEBUG] written bytes:", n, "err:", err)
+
+	_, err = w.Write(data)
 	return err
 }
 

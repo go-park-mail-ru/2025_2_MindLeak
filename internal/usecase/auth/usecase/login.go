@@ -33,10 +33,6 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 		return dto.RegisteredUserDto{}, uuid.UUID{}, InvalidCredentials
 	}
 
-	//if user.Password != userModel.Password {
-	//	return dto.RegisteredUserDto{}, uuid.UUID{}, InvalidCredentials
-	//}
-
 	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
 		logger.Error(ctx, err.Error(), nil)

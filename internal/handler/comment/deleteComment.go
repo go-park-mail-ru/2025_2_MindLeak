@@ -23,7 +23,7 @@ func (h *Handler) DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete comment: %v", err)
 		return
 	}
 
@@ -32,12 +32,12 @@ func (h *Handler) DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete comment: %v", err)
 		return
 	}
 
 	if err = json.Write(w, http.StatusOK, flag); err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete comment: %v", err)
 		return
 	}
 }

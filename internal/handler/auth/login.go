@@ -18,7 +18,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "login error: %v", err)
 		return
 	}
 
@@ -31,7 +31,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "login error: %v", err)
 		return
 	}
 
@@ -46,7 +46,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Write(w, http.StatusOK, userOutputDto)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "login error: %v", err)
 		return
 	}
 

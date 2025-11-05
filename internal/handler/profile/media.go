@@ -13,7 +13,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload avatar: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -21,7 +21,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload avatar: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -29,7 +29,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.Usecase.GetSession(ctx, sessionID)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload avatar: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -37,7 +37,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload avatar: %v", err)
 		json.WriteError(w, http.StatusBadRequest, "file not provided")
 		return
 	}
@@ -45,7 +45,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.Usecase.UploadAvatar(ctx, session.UserId, file, header)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload avatar: %v", err)
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -58,7 +58,7 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete avatar: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -66,7 +66,7 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete avatar: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -74,7 +74,7 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.Usecase.GetSession(ctx, sessionID)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete avatar: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -82,7 +82,7 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.Usecase.DeleteAvatar(ctx, session.UserId)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete avatar: %v", err)
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -95,7 +95,7 @@ func (h *Handler) UploadCover(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload cover: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -103,7 +103,7 @@ func (h *Handler) UploadCover(w http.ResponseWriter, r *http.Request) {
 
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload cover: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -111,7 +111,7 @@ func (h *Handler) UploadCover(w http.ResponseWriter, r *http.Request) {
 
 	session, err := h.Usecase.GetSession(ctx, sessionID)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload cover: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -119,7 +119,7 @@ func (h *Handler) UploadCover(w http.ResponseWriter, r *http.Request) {
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload cover: %v", err)
 		json.WriteError(w, http.StatusBadRequest, "file not provided")
 		return
 	}
@@ -127,7 +127,7 @@ func (h *Handler) UploadCover(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := h.Usecase.UploadCover(ctx, session.UserId, file, header)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "upload cover: %v", err)
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -140,7 +140,7 @@ func (h *Handler) DeleteCover(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete cover: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -149,13 +149,14 @@ func (h *Handler) DeleteCover(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
 		code, msg := h.handleError(err)
+		logger.Error(ctx, "delete cover: %v", err)
 		json.WriteError(w, code, msg)
 		return
 	}
 
 	session, err := h.Usecase.GetSession(ctx, sessionID)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete cover: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -163,7 +164,7 @@ func (h *Handler) DeleteCover(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := h.Usecase.DeleteCover(ctx, session.UserId)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete cover: %v", err)
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

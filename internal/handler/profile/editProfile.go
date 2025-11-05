@@ -34,7 +34,7 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "edit profile: %v", err)
 		return
 	}
 
@@ -91,7 +91,7 @@ func (h *Handler) EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "write json: %v", err)
 		return
 	}
 }

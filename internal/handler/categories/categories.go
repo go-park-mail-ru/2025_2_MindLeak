@@ -15,14 +15,14 @@ func (h *Handler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 	offsetInt, err := strconv.Atoi(offset)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "categories handler error: %v", err)
 		json.WriteError(w, http.StatusBadRequest, "Invalid offset")
 		return
 	}
 
 	posts, err := h.Usecase.GetFeedByTopic(ctx, topic, offsetInt)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "categories handler error: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -30,7 +30,7 @@ func (h *Handler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Write(w, http.StatusOK, posts)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "categories handler error: %v", err)
 		return
 	}
 }

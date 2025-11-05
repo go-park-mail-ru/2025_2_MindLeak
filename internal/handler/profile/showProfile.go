@@ -49,7 +49,7 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	prof, err := h.Usecase.ShowProfile(ctx, targetID)
 	if err != nil {
-		logger.Error(ctx, "ShowProfile: %v", err)
+		logger.Error(ctx, "show profile: %v", err)
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
 		return
@@ -77,7 +77,7 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "show profile: %v", err)
 		return
 	}
 

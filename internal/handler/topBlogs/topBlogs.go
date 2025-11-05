@@ -12,7 +12,7 @@ func (h *Handler) ShowTopBlogs(w http.ResponseWriter, r *http.Request) {
 	blogs, err := h.Usecase.ShowTopBlogs(ctx)
 	if err != nil {
 		code, msg := h.handleError(err)
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "ShowTopBlogs: %v", err)
 		json.WriteError(w, code, msg)
 		return
 	}
