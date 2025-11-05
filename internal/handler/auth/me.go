@@ -35,12 +35,12 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	output, err := h.Usecase.Me(ctx, sessionID)
 	if err != nil {
 		code, msg := h.handleError(err)
-		logger.Error(ctx, "usecase.Me error: %v", err)
+		logger.Error(ctx, " error: %v", err)
 		json.WriteError(w, code, msg)
 		return
 	}
 
-	logger.Info(ctx, "usecase.Me success, preparing response")
+	logger.Info(ctx, " success, preparing response")
 
 	userOutputDto := &dto.UserOutputMe{
 		Id:     output.Id,
@@ -54,5 +54,5 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info(ctx, "[auth.Me] handler finished successfully")
+	logger.Info(ctx, "handler finished successfully")
 }

@@ -32,7 +32,7 @@ func CSRFMiddleware(next http.Handler) http.Handler {
 					Value:    token,
 					Path:     "/",
 					Secure:   true,
-					HttpOnly: true,
+					HttpOnly: false,
 					SameSite: http.SameSiteNoneMode,
 					Expires:  time.Now().Add(1 * time.Hour),
 				})
