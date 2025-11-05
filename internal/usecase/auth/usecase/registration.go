@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
@@ -35,7 +36,7 @@ func (u *Usecase) Registration(ctx context.Context, user models.User) (dto.Regis
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
-	hashedStr := string(hashed)
+	hashedStr := fmt.Sprintf("%x", hashed)
 
 	newUser, err := u.userRepo.CreateUser(ctx, user.Email, hashedStr, user.Name)
 	if err != nil {

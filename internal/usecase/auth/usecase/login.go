@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
@@ -26,7 +27,9 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
-	if !security.CheckPassword([]byte(user.Password), userModel.Password) {
+	storedPassword, _ := hex.DecodeString(user.Password)
+
+	if !security.CheckPassword(storedPassword, userModel.Password) {
 		return dto.RegisteredUserDto{}, uuid.UUID{}, InvalidCredentials
 	}
 
