@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/security"
 	"github.com/google/uuid"
 )
 
@@ -25,9 +26,13 @@ func (u *Usecase) Login(ctx context.Context, userModel models.User) (dto.Registe
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
-	if user.Password != userModel.Password {
+	if !security.CheckPassword([]byte(user.Password), userModel.Password) {
 		return dto.RegisteredUserDto{}, uuid.UUID{}, InvalidCredentials
 	}
+
+	//if user.Password != userModel.Password {
+	//	return dto.RegisteredUserDto{}, uuid.UUID{}, InvalidCredentials
+	//}
 
 	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
