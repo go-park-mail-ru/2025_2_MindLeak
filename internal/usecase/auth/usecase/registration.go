@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/security"
 	"github.com/google/uuid"
 	"regexp"
 	"strings"
@@ -28,7 +29,15 @@ func (u *Usecase) Registration(ctx context.Context, user models.User) (dto.Regis
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
-	newUser, err := u.userRepo.CreateUser(ctx, user.Email, user.Password, user.Name)
+	hashed, err := security.HashPassword(user.Password)
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
+	}
+
+	hashedStr := string(hashed)
+
+	newUser, err := u.userRepo.CreateUser(ctx, user.Email, hashedStr, user.Name)
 	if err != nil {
 		logger.Error(ctx, err.Error())
 		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
