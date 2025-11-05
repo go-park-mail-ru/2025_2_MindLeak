@@ -24,6 +24,13 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	session, err := h.Usecase.GetSession(ctx, sessionID)
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		return
+	}
+
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, "file not provided")
@@ -31,7 +38,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	user, err := h.Usecase.UploadAvatar(ctx, sessionID, file, header)
+	user, err := h.Usecase.UploadAvatar(ctx, session.UserId, file, header)
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -57,7 +64,14 @@ func (h *Handler) DeleteAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.Usecase.DeleteAvatar(ctx, sessionID)
+	session, err := h.Usecase.GetSession(ctx, sessionID)
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		return
+	}
+
+	user, err := h.Usecase.DeleteAvatar(ctx, session.UserId)
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -83,6 +97,13 @@ func (h *Handler) UploadCover(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	session, err := h.Usecase.GetSession(ctx, sessionID)
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		return
+	}
+
 	file, header, err := r.FormFile("file")
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, "file not provided")
@@ -90,7 +111,7 @@ func (h *Handler) UploadCover(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	profile, err := h.Usecase.UploadCover(ctx, sessionID, file, header)
+	profile, err := h.Usecase.UploadCover(ctx, session.UserId, file, header)
 	if err != nil {
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
