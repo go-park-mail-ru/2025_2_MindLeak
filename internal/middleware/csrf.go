@@ -32,9 +32,9 @@ func CSRFMiddleware(next http.Handler) http.Handler {
 					Value:    token,
 					Path:     "/",
 					Secure:   true,
-					HttpOnly: false,
-					SameSite: http.SameSiteLaxMode,
-					Expires:  time.Now().Add(12 * time.Hour),
+					HttpOnly: true,
+					SameSite: http.SameSiteNoneMode,
+					Expires:  time.Now().Add(1 * time.Hour),
 				})
 			}
 			next.ServeHTTP(w, r)
