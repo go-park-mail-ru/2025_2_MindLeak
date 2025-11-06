@@ -30,8 +30,8 @@ CREATE TABLE profile (
 CREATE TYPE article_status AS ENUM ('draft', 'published', 'archived');
 
 CREATE TABLE topic (
-  topic_id SERIAL PRIMARY KEY,
-  title TEXT NOT NULL UNIQUE
+                       topic_id INT PRIMARY KEY,
+                       title TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE article (
@@ -40,7 +40,7 @@ CREATE TABLE article (
                          title TEXT NOT NULL,
                          content TEXT NOT NULL,
                          media_url TEXT,
-                         topic_id UUID NOT NULL REFERENCES topic(topic_id) ON DELETE NO ACTION,
+                         topic_id INT NOT NULL REFERENCES topic(topic_id) ON DELETE NO ACTION,
                          status article_status NOT NULL DEFAULT 'draft',
                          comments_count INT,
                          reposts_count INT,
@@ -81,13 +81,12 @@ CREATE TABLE media (
 );
 
 CREATE TABLE subscription (
-    follower_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
-    followed_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (follower_id, followed_id),
-    CHECK (follower_id <> followed_id)
+                              follower_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
+                              followed_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
+                              created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                              PRIMARY KEY (follower_id, followed_id),
+                              CHECK (follower_id <> followed_id)
 );
-
 
 CREATE OR REPLACE FUNCTION update_updated_at()
     RETURNS TRIGGER AS $$
@@ -112,20 +111,17 @@ CREATE TRIGGER trg_article_updated_at
 CREATE TRIGGER trg_comment_updated_at
     BEFORE UPDATE ON comment
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 -- +goose StatementEnd
-
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS media;
-DROP TABLE IF EXISTS article_like;
-DROP TABLE IF EXISTS comment;
-DROP TABLE IF EXISTS article;
-DROP TABLE IF EXISTS profile;
-DROP TABLE IF EXISTS "user";
-DROP TABLE IF EXISTS subscription;
-DROP TABLE IF EXISTS topic;
+DROP TABLE IF EXISTS media CASCADE;
+DROP TABLE IF EXISTS article_like CASCADE;
+DROP TABLE IF EXISTS comment CASCADE;
+DROP TABLE IF EXISTS article CASCADE;
+DROP TABLE IF EXISTS profile CASCADE;
+DROP TABLE IF EXISTS subscription CASCADE;
+DROP TABLE IF EXISTS "user" CASCADE;
 DROP TYPE IF EXISTS media_type;
 DROP TYPE IF EXISTS article_status;
 DROP FUNCTION IF EXISTS update_updated_at();
