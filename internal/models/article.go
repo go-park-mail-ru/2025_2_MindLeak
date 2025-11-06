@@ -20,7 +20,7 @@ type Article struct {
 	Title         string    `db:"title"`
 	Content       string    `db:"content"`
 	MediaURL      string    `db:"media_url,omitempty"` // URL из MinIO
-	TopicID       uuid.UUID `db:"topic_id"`
+	TopicID       int       `db:"topic_id"`
 	Status        string    `db:"status"` // draft, published, archived
 	CommentsCount int       `db:"comments_count"`
 	RepostsCount  int       `db:"reposts_count"`

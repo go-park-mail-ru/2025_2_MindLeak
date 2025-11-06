@@ -6,16 +6,16 @@ import (
 )
 
 type CreateArticleInput struct {
-	Title   string    `json:"title" validate:"required,min=1,max=200"`
-	Content string    `json:"content" validate:"required,min=1"`
-	TopicID uuid.UUID `json:"topic_id" validate:"required"`
+	Title   string `json:"title" validate:"required,min=1,max=200"`
+	Content string `json:"content" validate:"required,min=1"`
+	TopicID int    `json:"topic_id" validate:"required"`
 }
 
 type UpdateArticleInput struct {
-	Title   *string    `json:"title,omitempty"`
-	Content *string    `json:"content,omitempty"`
-	Status  *string    `json:"status,omitempty"`
-	TopicID *uuid.UUID `json:"topic_id,omitempty"`
+	Title   *string `json:"title,omitempty"`
+	Content *string `json:"content,omitempty"`
+	Status  *string `json:"status,omitempty"`
+	TopicID *int    `json:"topic_id,omitempty"`
 }
 
 type ArticleOutput struct {
@@ -24,7 +24,7 @@ type ArticleOutput struct {
 	Title         string       `json:"title"`
 	Content       string       `json:"content"`
 	MediaURL      string       `json:"media_url,omitempty"`
-	TopicID       uuid.UUID    `json:"topic_id"`
+	TopicID       int          `json:"topic_id"`
 	Status        string       `json:"status"`
 	CommentsCount int          `json:"comments_count"`
 	RepostsCount  int          `json:"reposts_count"`

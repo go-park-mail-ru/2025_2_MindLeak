@@ -15,7 +15,7 @@ func (u *Usecase) UpdateArticle(
 	sessionID uuid.UUID,
 	articleID uuid.UUID,
 	title, content, status *string,
-	topicID *uuid.UUID,
+	topicID *int,
 	file *multipart.FileHeader,
 ) (models.Article, error) {
 

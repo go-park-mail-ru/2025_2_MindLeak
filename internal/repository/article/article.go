@@ -18,7 +18,7 @@ var (
 )
 
 type ArticleRepository interface {
-	CreateArticle(ctx context.Context, authorId uuid.UUID, title, content string, topicId uuid.UUID) (models.Article, error)
+	CreateArticle(ctx context.Context, authorId uuid.UUID, title, content string, topicId int) (models.Article, error)
 	GetArticleById(ctx context.Context, id uuid.UUID) (models.Article, error)
 	GetArticlesByAuthorId(ctx context.Context, authorId uuid.UUID) ([]models.Article, error)
 	GetFeedArticles(ctx context.Context, feed models.Feed) ([]models.Article, error)
@@ -35,7 +35,7 @@ func NewArticleRepo(db *sql.DB) *ArticleRepo {
 	return &ArticleRepo{db: db}
 }
 
-func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string, topicID uuid.UUID) (models.Article, error) {
+func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, title, content string, topicID int) (models.Article, error) {
 	query := `
 		INSERT INTO article (author_id, title, content, topic_id, status)
 		VALUES ($1, $2, $3, $4, 'draft')

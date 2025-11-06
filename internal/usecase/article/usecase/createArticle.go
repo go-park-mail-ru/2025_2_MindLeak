@@ -13,7 +13,7 @@ func (u *Usecase) CreateArticle(
 	ctx context.Context,
 	sessionID uuid.UUID,
 	title, content string,
-	topicID uuid.UUID,
+	topicID int,
 	file *multipart.FileHeader,
 ) (models.Article, error) {
 
