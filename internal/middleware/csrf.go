@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	csrfCookieName = "csrf_token"
+	csrfCookieName = "csrftoken"
 	csrfHeaderName = "X-CSRF-Token"
 )
 
