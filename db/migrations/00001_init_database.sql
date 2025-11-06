@@ -30,7 +30,7 @@ CREATE TABLE profile (
 CREATE TYPE article_status AS ENUM ('draft', 'published', 'archived');
 
 CREATE TABLE topic (
-  topic_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  topic_id SERIAL PRIMARY KEY,
   title TEXT NOT NULL UNIQUE
 );
 
