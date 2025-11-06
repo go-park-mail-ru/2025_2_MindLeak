@@ -56,5 +56,10 @@ func NewRouter(
 	router.HandleFunc("/comments", commentHandler.CreateCommentHandler).Methods("POST")
 	router.HandleFunc("/comments", commentHandler.UpdateCommentHandler).Methods("PUT")
 
+	//Посты
+	router.HandleFunc("/posts", articleHandler.CreateArticle).Methods("POST")
+	router.HandleFunc("/posts/{id}", articleHandler.DeleteArticle).Methods("DELETE")
+	router.HandleFunc("/posts/{id}", articleHandler.UpdateArticle).Methods("PUT")
+
 	return router
 }
