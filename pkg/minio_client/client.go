@@ -36,3 +36,7 @@ func (c *Client) GetDefaultAvatar() string {
 func (c *Client) GetDefaultCover() string {
 	return fmt.Sprintf("https://mindleak.ru/%s/%s/cover-pic.jpg", c.publicURL, c.bucket)
 }
+
+func (c *Client) GetDefaultMedia() string {
+	return fmt.Sprintf("https://mindleak.ru/%s/%s/default.jpg", c.publicURL, c.bucket)
+}

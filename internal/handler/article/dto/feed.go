@@ -6,5 +6,5 @@ type FeedInputDTO struct {
 }
 
 type FeedOutputDTO struct {
-	Articles []ArticleOutputDTO `json:"articles"`
+	Articles []ArticleOutput `json:"articles"`
 }
