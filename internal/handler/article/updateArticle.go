@@ -51,6 +51,7 @@ func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 		ID:           article.ID,
 		Title:        article.Title,
 		Content:      article.Content,
+		AuthorID:     article.AuthorID,
 		MediaURL:     article.MediaURL,
 		TopicID:      article.TopicID,
 		Status:       article.Status,

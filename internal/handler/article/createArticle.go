@@ -42,6 +42,7 @@ func (h *Handler) CreateArticle(w http.ResponseWriter, r *http.Request) {
 	out := dto.ArticleOutput{
 		ID:           article.ID,
 		Title:        article.Title,
+		AuthorID:     article.AuthorID,
 		Content:      article.Content,
 		MediaURL:     article.MediaURL,
 		TopicID:      article.Topic.TopicId,

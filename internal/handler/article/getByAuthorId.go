@@ -38,6 +38,7 @@ func (h *Handler) GetOwnArticles(w http.ResponseWriter, r *http.Request) {
 		out = append(out, dto.ArticleOutput{
 			ID:           a.ID,
 			Title:        a.Title,
+			AuthorID:     a.AuthorID,
 			Content:      a.Content,
 			MediaURL:     a.MediaURL,
 			TopicID:      a.TopicID,
