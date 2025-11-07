@@ -162,7 +162,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 		var mediaURL sql.NullString
 
 		if err := rows.Scan(
-			&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.MediaURL,
+			&a.ID, &a.AuthorID, &a.Title, &a.Content, &mediaURL,
 			&a.Status, &a.CreatedAt, &a.UpdatedAt,
 			&a.Topic.TopicId, &a.Topic.Title,
 			&a.AuthorName, &a.AuthorAvatar,
