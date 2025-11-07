@@ -21,6 +21,7 @@ func (h *Handler) ShowOtherProfileHandler(w http.ResponseWriter, r *http.Request
 		json.WriteError(w, code, msg)
 		return
 	}
+	logger.Warn(ctx, " Other profile is user ID: %v", targetIDStr)
 
 	targetID, err := uuid.Parse(targetIDStr)
 	if err != nil {
@@ -29,7 +30,7 @@ func (h *Handler) ShowOtherProfileHandler(w http.ResponseWriter, r *http.Request
 		json.WriteError(w, code, msg)
 		return
 	}
-
+	logger.Warn(ctx, "Fetching profile for user ID: %v", targetID)
 	prof, err := h.Usecase.ShowProfile(ctx, targetID)
 	if err != nil {
 		code, msg := h.handleError(err)
