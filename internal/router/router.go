@@ -36,8 +36,7 @@ func NewRouter(
 	router.HandleFunc("/me", authHandler.Me).Methods("GET")
 	router.HandleFunc("/swagger", swagger.SwaggerHandler).Methods("GET")
 
-	router.HandleFunc("/profile/{id}", profileHandler.ShowOtherProfileHandler).Methods("GET") //чужой профиль
-	router.HandleFunc("/profile", profileHandler.ShowOwnProfileHandler).Methods("GET")        //свой профиль
+	router.HandleFunc("/profile", profileHandler.ShowProfileHandler).Methods("GET") //свой профиль
 	router.HandleFunc("/profile", profileHandler.EditProfileHandler).Methods("PUT")
 	router.HandleFunc("/profile/delete", profileHandler.DeleteProfileHandler).Methods("DELETE")
 

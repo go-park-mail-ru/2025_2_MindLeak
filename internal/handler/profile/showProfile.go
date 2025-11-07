@@ -9,32 +9,54 @@ import (
 	"net/http"
 )
 
-func (h *Handler) ShowOwnProfileHandler(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	cookie, err := cookies.GetCookie(r)
-	if err != nil {
-		logger.Error(ctx, "GetCookie: %v", err)
-		code, msg := h.handleError(err)
-		json.WriteError(w, code, msg)
-		return
-	}
-	sessionID, err := uuid.Parse(cookie.Value)
-	if err != nil {
-		logger.Error(ctx, "Parse: %v", err)
-		code, msg := h.handleError(err)
-		json.WriteError(w, code, msg)
-		return
-	}
+	queryParams := r.URL.Query()
+	targetIDStr := queryParams.Get("id")
 
-	session, err := h.Usecase.GetSession(ctx, sessionID)
-	if err != nil {
-		code, msg := h.handleError(err)
-		json.WriteError(w, code, msg)
-		return
-	}
+	var targetID uuid.UUID
 
-	targetID := session.UserId
+	if targetIDStr == "" {
+
+		cookie, err := cookies.GetCookie(r)
+		if err != nil {
+			logger.Error(ctx, "GetCookie: %v", err)
+			code, msg := h.handleError(err)
+			json.WriteError(w, code, msg)
+			return
+		}
+
+		sessionID, err := uuid.Parse(cookie.Value)
+		if err != nil {
+			logger.Error(ctx, "Parse: %v", err)
+			code, msg := h.handleError(err)
+			json.WriteError(w, code, msg)
+			return
+		}
+
+		session, err := h.Usecase.GetSession(ctx, sessionID)
+		if err != nil {
+			code, msg := h.handleError(err)
+			json.WriteError(w, code, msg)
+			return
+		}
+
+		targetID = session.UserId
+		logger.Info(ctx, "Fetching own profile for user ID: %v", targetID)
+	} else {
+
+		var err error
+		targetID, err = uuid.Parse(targetIDStr)
+		if err != nil {
+			logger.Error(ctx, "Invalid user ID format: %v", err)
+			code, msg := h.handleError(err)
+			json.WriteError(w, code, msg)
+			return
+		}
+
+		logger.Info(ctx, "Fetching other user's profile with ID: %v", targetID)
+	}
 
 	prof, err := h.Usecase.ShowProfile(ctx, targetID)
 	if err != nil {
