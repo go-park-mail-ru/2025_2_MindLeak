@@ -8,18 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func (u *Usecase) GetArticlesByAuthorId(ctx context.Context, sessionID uuid.UUID) ([]models.Article, error) {
-	session, err := u.sessionRepo.GetSessionById(ctx, sessionID)
+func (u *Usecase) GetArticlesByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Article, error) {
+	articles, err := u.articleRepo.GetArticlesByAuthorId(ctx, authorID)
 	if err != nil {
-		logger.Error(ctx, "session not found: %v", err)
+		logger.Error(ctx, "get articles by author id failed: %v", err)
 		return nil, u.handleError(err)
 	}
-
-	articles, err := u.articleRepo.GetArticlesByAuthorId(ctx, session.UserId)
-	if err != nil {
-		logger.Error(ctx, "get own articles failed: %v", err)
-		return nil, u.handleError(err)
-	}
-
 	return articles, nil
 }
