@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) GetOwnArticles(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetArticlesByAuthorId(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	cookie, err := cookies.GetCookie(r)
