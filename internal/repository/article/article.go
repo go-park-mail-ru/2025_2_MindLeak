@@ -159,6 +159,8 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 	var articles []models.Article
 	for rows.Next() {
 		var a models.Article
+		var mediaURL sql.NullString
+
 		if err := rows.Scan(
 			&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.MediaURL,
 			&a.Status, &a.CreatedAt, &a.UpdatedAt,
@@ -167,6 +169,11 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 		); err != nil {
 			logger.Error(ctx, err.Error())
 			return nil, err
+		}
+		if mediaURL.Valid {
+			a.MediaURL = mediaURL.String
+		} else {
+			a.MediaURL = ""
 		}
 		articles = append(articles, a)
 	}
