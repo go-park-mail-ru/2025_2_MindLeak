@@ -40,6 +40,7 @@ func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 		Status:       article.Status,
 		AuthorName:   article.AuthorName,
 		AuthorAvatar: article.AuthorAvatar,
+		Topic:        article.Topic,
 	}
 
 	json.Write(w, http.StatusOK, out)
