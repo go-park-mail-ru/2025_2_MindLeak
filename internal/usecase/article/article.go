@@ -15,7 +15,7 @@ type Usecase interface {
 	DeleteArticle(ctx context.Context, sessionID, articleID uuid.UUID) (bool, error)
 	UpdateArticle(ctx context.Context, sessionID uuid.UUID, articleID uuid.UUID, title, content, status *string, topicID *int, file *multipart.FileHeader) (models.Article, error)
 	GetArticleById(ctx context.Context, articleID uuid.UUID) (models.Article, error)
-	GetArticlesByAuthorId(ctx context.Context, authorID uuid.UUID) ([]models.Article, error)
+	GetArticlesByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Article, error)
 	UploadArticleMedia(ctx context.Context, articleID uuid.UUID, file multipart.File, header *multipart.FileHeader) (models.Article, error)
 	DeleteArticleMedia(ctx context.Context, articleID uuid.UUID) (models.Article, error)
 }
