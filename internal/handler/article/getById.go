@@ -3,18 +3,21 @@ package article
 import (
 	"net/http"
 
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
+	"github.com/google/uuid"
 )
 
 func (h *Handler) GetArticle(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	articleID, err := uuid.Parse(vars["id"])
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		json.WriteError(w, http.StatusBadRequest, "missing article ID")
+		return
+	}
+
+	articleID, err := uuid.Parse(idStr)
 	if err != nil {
 		json.WriteError(w, http.StatusBadRequest, "invalid article ID")
 		return
