@@ -146,7 +146,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 		JOIN "user" u ON a.author_id = u.user_id
 		WHERE a.status = 'draft'
 		ORDER BY a.updated_at DESC NULLS LAST, a.created_at DESC
-		OFFSET $1 LIMIT 5
+		OFFSET $1
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, feed.Offset)
