@@ -128,6 +128,7 @@ func (p *PostgresUser) GetUserById(ctx context.Context, userID uuid.UUID) (model
 		logger.Error(ctx, "Error getting user: %v", err)
 		return models.User{}, ErrGettingUser
 	}
+	logger.Info(ctx, "Fetched user for user ID: %v", userID)
 
 	return user, nil
 }

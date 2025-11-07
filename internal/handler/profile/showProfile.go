@@ -20,6 +20,7 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, code, msg)
 		return
 	}
+	logger.Info(ctx, "Received cookie: %v", cookie)
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
 		logger.Error(ctx, "Parse: %v", err)
@@ -27,11 +28,13 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, code, msg)
 		return
 	}
+	logger.Info(ctx, "Parsed session ID: %v", sessionID)
 
 	vars := mux.Vars(r)
 	var targetID uuid.UUID
 	if idStr, ok := vars["id"]; ok && idStr != "" {
 		targetID, err = uuid.Parse(idStr)
+		logger.Info(ctx, "We want to see other profile: %v", targetID)
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
@@ -44,9 +47,12 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 			json.WriteError(w, code, msg)
 			return
 		}
+		logger.Info(ctx, "Session retrieved: %v", session)
 		targetID = session.UserId
+		logger.Info(ctx, "Target user is we: %v", targetID)
 	}
 
+	logger.Info(ctx, "Fetching profile for user ID: %v", targetID)
 	prof, err := h.Usecase.ShowProfile(ctx, targetID)
 	if err != nil {
 		logger.Error(ctx, "ShowProfile: %v", err)
@@ -80,5 +86,5 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Error(ctx, err.Error())
 		return
 	}
-
+	logger.Info(ctx, "Successfully sent profile response for user ID: %v", targetID)
 }

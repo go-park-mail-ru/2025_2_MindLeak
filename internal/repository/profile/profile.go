@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
 	"github.com/google/uuid"
 	"time"
@@ -143,7 +144,7 @@ func (p *PostgresProfile) GetProfile(ctx context.Context, userID uuid.UUID) (mod
 	if err != nil {
 		return models.Profile{}, fmt.Errorf("get profile: %w", err)
 	}
-
+	logger.Info(ctx, "Fetched profile for user ID: %v", userID)
 	return profile, nil
 }
 
