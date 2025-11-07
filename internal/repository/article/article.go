@@ -144,7 +144,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 		FROM article a
 		JOIN topic t ON a.topic_id = t.topic_id
 		JOIN "user" u ON a.author_id = u.user_id
-		WHERE a.status = 'published'
+		WHERE a.status = 'draft'
 		ORDER BY a.updated_at DESC NULLS LAST, a.created_at DESC
 		OFFSET $1 LIMIT 5
 	`
