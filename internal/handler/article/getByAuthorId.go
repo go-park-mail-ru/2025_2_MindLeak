@@ -41,6 +41,7 @@ func (h *Handler) GetArticlesByAuthorId(w http.ResponseWriter, r *http.Request) 
 			Status:       a.Status,
 			AuthorName:   a.AuthorName,
 			AuthorAvatar: a.AuthorAvatar,
+			Topic:        a.Topic,
 		})
 	}
 
