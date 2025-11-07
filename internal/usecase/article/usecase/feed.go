@@ -24,6 +24,7 @@ func toDTO(articles []models.Article) dto.ReceivedFeedDTO {
 			ID:           a.ID,
 			AuthorID:     a.AuthorID,
 			Title:        a.Title,
+			MediaURL:     a.MediaURL,
 			Content:      a.Content,
 			CreatedAt:    a.CreatedAt,
 			Topic:        a.Topic,

@@ -137,7 +137,7 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 
 func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]models.Article, error) {
 	query := `
-		SELECT a.article_id, a.author_id, a.title, a.content, 
+		SELECT a.article_id, a.author_id, a.title, a.content, a.media_url,
 		       a.status, a.created_at, a.updated_at,
 		       t.topic_id, t.title AS topic_title,
 		       u.name, u.avatar
@@ -160,7 +160,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 	for rows.Next() {
 		var a models.Article
 		if err := rows.Scan(
-			&a.ID, &a.AuthorID, &a.Title, &a.Content,
+			&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.MediaURL,
 			&a.Status, &a.CreatedAt, &a.UpdatedAt,
 			&a.Topic.TopicId, &a.Topic.Title,
 			&a.AuthorName, &a.AuthorAvatar,
