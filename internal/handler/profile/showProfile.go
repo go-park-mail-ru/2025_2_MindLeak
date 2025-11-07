@@ -81,6 +81,7 @@ func (h *Handler) ShowProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Subscribers:   prof.Subscribers,
 		Subscriptions: prof.Subscriptions,
 		Password:      prof.Password,
+		Id:            prof.Id,
 	}
 
 	err = json.Write(w, http.StatusOK, profileOutDto)

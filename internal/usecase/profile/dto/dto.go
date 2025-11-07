@@ -2,6 +2,7 @@ package dto
 
 import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -22,4 +23,5 @@ type ProfileDto struct {
 	Subscribers   int
 	Subscriptions int
 	Password      string
+	Id            uuid.UUID
 }

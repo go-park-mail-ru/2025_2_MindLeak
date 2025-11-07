@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/google/uuid"
+)
 
 type ProfileInputDto struct {
 	Phone       string     `json:"phone"`
@@ -29,10 +32,11 @@ type ProfileOutputDto struct {
 	CoverURL    string     `json:"cover_url"`
 	CreatedAt   string     `json:"created_at"`
 
-	Name          string `json:"name"`
-	AvatarURL     string `json:"avatar_url"`
-	Email         string `json:"email"`
-	Password      string `json:"password"`
-	Subscribers   int    `json:"subscribers"`
-	Subscriptions int    `json:"subscriptions"`
+	Name          string    `json:"name"`
+	AvatarURL     string    `json:"avatar_url"`
+	Email         string    `json:"email"`
+	Password      string    `json:"password"`
+	Subscribers   int       `json:"subscribers"`
+	Subscriptions int       `json:"subscriptions"`
+	Id            uuid.UUID `json:"id"`
 }
