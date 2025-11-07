@@ -1,6 +1,6 @@
 ```mermaid
 erDiagram
-    USER ||--o{ USER_PROFILE : has
+    USER ||--o{ PROFILE : has
     USER ||--o{ ARTICLE : writes
     USER ||--o{ COMMENT : posts
     USER ||--o{ ARTICLE_LIKE : likes
@@ -17,16 +17,24 @@ erDiagram
     USER {
         UUID USER_ID PK
         TEXT LOGIN UK
-        TEXT PASSWORD_HASH
+        TEXT PASSWORD
         TEXT EMAIL UK
+        TEXT NAME
+        TEXT AVATAR
         TIMESTAMPTZ CREATED_AT
         TIMESTAMPTZ UPDATED_AT
     }
-    USER_PROFILE {
-        UUID USER_ID PK,FK
-        TEXT DISPLAY_NAME
-        TEXT BIO
-        TEXT AVATAR_URL
+    PROFILE {
+        UUID PROFILE_ID PK
+        UUID USER_ID FK
+        TEXT PHONE
+        TEXT COUNTRY
+        TEXT LANGUAGE
+        TEXT SEX
+        DATE DATE_OF_BIRTH
+        INT AGE
+        TEXT DESCRIPTION
+        TEXT COVER_URL
         TIMESTAMPTZ CREATED_AT
         TIMESTAMPTZ UPDATED_AT
     }
@@ -35,8 +43,12 @@ erDiagram
         TEXT TITLE
         TEXT CONTENT
         UUID AUTHOR_ID FK
-        TIMESTAMPTZ PUBLISHED_AT
+        TEXT MEDIA_URL
+        INT TOPIC_ID FK
         TEXT STATUS
+        INT COMMENTS_COUNT
+        INT REPOSTS_COUNT
+        INT VIEWS_COUNT
         TIMESTAMPTZ CREATED_AT
         TIMESTAMPTZ UPDATED_AT
     }
@@ -59,16 +71,7 @@ erDiagram
         TEXT CONTENT
         TIMESTAMPTZ CREATED_AT
         TIMESTAMPTZ UPDATED_AT
-    }
-    ARTICLE_CATEGORY {
-        UUID ARTICLE_ID PK,FK
-        UUID CATEGORY_ID PK,FK
-        TIMESTAMPTZ CREATED_AT
-    }
-    ARTICLE_TAG {
-        UUID ARTICLE_ID PK,FK
-        UUID TAG_ID PK,FK
-        TIMESTAMPTZ CREATED_AT
+        UUID REPLY_TO FK
     }
     ARTICLE_LIKE {
         UUID USER_ID PK,FK
@@ -86,6 +89,11 @@ erDiagram
         TEXT TYPE
         TEXT CONTENT
         BOOLEAN IS_READ
+        TIMESTAMPTZ CREATED_AT
+    }
+    SUBSCRIPTION {
+        UUID FOLLOWER_ID FK
+        UUID FOLLOWED_ID FK
         TIMESTAMPTZ CREATED_AT
     }
 ```
