@@ -1,9 +1,12 @@
 package dto
 
+import "github.com/google/uuid"
+
 type TopBlogDto struct {
-	Name        string `json:"name"`
-	Avatar      string `json:"avatar"`
-	Subscribers int    `json:"subscribers"`
+	Id          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Avatar      string    `json:"avatar"`
+	Subscribers int       `json:"subscribers"`
 }
 
 type TopBlogsDto struct {

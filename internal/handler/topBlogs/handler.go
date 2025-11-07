@@ -19,6 +19,7 @@ func NewTopBlogsHandler(usecase topBlogs.Usecase) *Handler {
 
 func (h *Handler) mapToDto(blog models.User) dto.TopBlogDto {
 	return dto.TopBlogDto{
+		Id:          blog.Id,
 		Name:        blog.Name,
 		Avatar:      blog.Avatar,
 		Subscribers: blog.Subscribers,
