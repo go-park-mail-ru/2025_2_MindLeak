@@ -1,59 +1,68 @@
 package router
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/comment"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/swagger"
-	"net/http"
-
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/feed"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/login"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/logout"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/registration"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
-
-	handler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/me"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/topBlogs"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
+	"github.com/gorilla/mux"
 )
 
-func NewRouter(sessions session.SessionRepository, users user.UserRepository, articles article.ArticleRepository) *http.ServeMux {
-	mux := http.NewServeMux()
+func NewRouter(
+	articleHandler *article.Handler,
+	authHandler *auth.Handler,
+	profileHandler *profile.Handler,
+	categoryHandler *categories.Handler,
+	subsHandler *topBlogs.Handler,
+	commentHandler *comment.Handler,
+) *mux.Router {
+	router := mux.NewRouter()
 
-	mux.Handle("/feed", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			feed.FeedHandler(w, r, sessions, articles)
-		},
-	)))
+	router.Use(middleware.RecoverMiddleware)
+	router.Use(middleware.RequestIDMiddleware)
+	router.Use(middleware.CORSMiddleware)
+	//router.Use(middleware.CSRFMiddleware)
 
-	mux.Handle("/registration", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			registration.RegistrationHandler(w, r, sessions, users)
-		},
-	)))
+	//router.Use(middleware.AuthMiddleware) Потом подключить к нужным ручкам
 
-	mux.Handle("/login", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			login.LoginHandler(w, r, sessions, users)
-		},
-	)))
+	router.HandleFunc("/feed", articleHandler.Feed).Methods("GET")
+	router.HandleFunc("/registration", authHandler.Registration).Methods("POST")
+	router.HandleFunc("/login", authHandler.Login).Methods("POST")
+	router.HandleFunc("/logout", authHandler.Logout).Methods("GET")
+	router.HandleFunc("/me", authHandler.Me).Methods("GET")
+	router.HandleFunc("/swagger", swagger.SwaggerHandler).Methods("GET")
 
-	mux.Handle("/logout", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			logout.LogoutHandler(w, r, sessions)
-		},
-	)))
+	router.HandleFunc("/profile", profileHandler.ShowProfileHandler).Methods("GET") //свой профиль
+	router.HandleFunc("/profile", profileHandler.EditProfileHandler).Methods("PUT")
+	router.HandleFunc("/profile/delete", profileHandler.DeleteProfileHandler).Methods("DELETE")
 
-	mux.Handle("/me", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			handler.MeHandler(w, r, sessions, users)
-		},
-	)))
+	router.HandleFunc("/uploads/avatar", profileHandler.UploadAvatar).Methods("POST")
+	router.HandleFunc("/delete/avatar", profileHandler.DeleteAvatar).Methods("DELETE")
+	router.HandleFunc("/uploads/cover", profileHandler.UploadCover).Methods("POST")
+	router.HandleFunc("/delete/cover", profileHandler.DeleteCover).Methods("DELETE")
 
-	mux.Handle("/swagger/", middleware.CORSMiddleware(http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			swagger.SwaggerHandler(w, r)
-		},
-	)))
+	router.HandleFunc("/topblogs", subsHandler.ShowTopBlogs).Methods("GET")
 
-	return mux
+	router.HandleFunc("/feed/category", categoryHandler.CategoriesHandler).Methods("GET")
+
+	// Комменты
+	router.HandleFunc("/comments", commentHandler.GetCommentsHandler).Methods("GET")
+	router.HandleFunc("/comments", commentHandler.DeleteCommentHandler).Methods("DELETE")
+	router.HandleFunc("/comments", commentHandler.CreateCommentHandler).Methods("POST")
+	router.HandleFunc("/comments", commentHandler.UpdateCommentHandler).Methods("PUT")
+
+	//Посты
+	router.HandleFunc("/posts", articleHandler.CreateArticle).Methods("POST")
+	router.HandleFunc("/posts/{id}", articleHandler.DeleteArticle).Methods("DELETE")
+	router.HandleFunc("/posts/{id}", articleHandler.UpdateArticle).Methods("PUT")
+	router.HandleFunc("/posts", articleHandler.GetArticlesByAuthorId).Methods("GET")
+	router.HandleFunc("/post", articleHandler.GetArticle).Methods("GET")
+	router.HandleFunc("/uploads/media", articleHandler.UploadMedia).Methods("POST")
+	router.HandleFunc("/delete/media", articleHandler.DeleteMedia).Methods("DELETE")
+
+	return router
 }

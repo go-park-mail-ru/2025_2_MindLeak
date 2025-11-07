@@ -1,87 +1,139 @@
 package session
 
 import (
+	"context"
 	"errors"
-	"sync"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/gomodule/redigo/redis"
+	"time"
 
 	"github.com/google/uuid"
 )
 
+var (
+	ErrSessionNotFound = errors.New("session not found")
+	ErrCreatingSession = errors.New("failed to create session")
+	ErrSettingSession  = errors.New("setting session failed")
+)
+
 type SessionRepository interface {
-	CreateSession() (*Session, error)
-	GetSessionById(sessionId uuid.UUID) (*Session, error)
-	SetSessionUserId(sessionId uuid.UUID, userId uuid.UUID) (*Session, error)
-	DeleteSessionById(sessionId uuid.UUID) (bool, error)
+	CreateSession(ctx context.Context) (models.Session, error)
+	GetSessionById(ctx context.Context, sessionId uuid.UUID) (models.Session, error)
+	SetSessionUserId(ctx context.Context, sessionId uuid.UUID, userId uuid.UUID) (models.Session, error)
+	DeleteSessionById(ctx context.Context, sessionId uuid.UUID) (bool, error)
 }
 
-type Session struct {
-	SessionId uuid.UUID
-	UserId    uuid.UUID
+type RedisSessionManager struct {
+	pool *redis.Pool
 }
 
-type InMemorySession struct {
-	Sessions map[uuid.UUID]uuid.UUID
-	mu       sync.RWMutex
+func NewRedisSessionManager(pool *redis.Pool) *RedisSessionManager {
+	return &RedisSessionManager{pool: pool}
 }
 
-func NewInMemorySession() *InMemorySession {
-	return &InMemorySession{
-		Sessions: make(map[uuid.UUID]uuid.UUID),
+func (s *RedisSessionManager) CreateSession(ctx context.Context) (models.Session, error) {
+	conn := s.pool.Get()
+	defer conn.Close()
+
+	sessionID := uuid.New()
+
+	_, err := conn.Do("SETEX",
+		"session:"+sessionID.String(),
+		int(24*time.Hour/time.Second),
+		"",
+	)
+	if err != nil {
+		logger.Error(ctx, "Error creating empty session: %v", err)
+		return models.Session{}, ErrCreatingSession
 	}
+
+	logger.Info(ctx, "Empty session %s created", sessionID)
+
+	return models.Session{
+		SessionId: sessionID,
+		UserId:    uuid.Nil,
+	}, nil
 }
 
-func (mem *InMemorySession) CreateSession() (*Session, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
+func (s *RedisSessionManager) GetSessionById(ctx context.Context, sessionId uuid.UUID) (models.Session, error) {
+	conn := s.pool.Get()
+	defer conn.Close()
 
-	SessionId := uuid.New()
-	Session := &Session{
-		UserId:    uuid.UUID{},
-		SessionId: SessionId,
+	value, err := redis.String(conn.Do("GET", "session:"+sessionId.String()))
+	if err == redis.ErrNil {
+		logger.Error(ctx, "Session %s not found", sessionId.String())
+		return models.Session{}, ErrSessionNotFound
 	}
-	mem.Sessions[SessionId] = Session.UserId
-	return Session, nil
-}
+	if err != nil {
+		logger.Error(ctx, "Error getting session %s: %v", sessionId.String(), err)
+		return models.Session{}, ErrSessionNotFound
+	}
 
-func (mem *InMemorySession) GetSessionById(sessionId uuid.UUID) (*Session, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
-
-	if UserId, exists := mem.Sessions[sessionId]; exists {
-		session := &Session{
-			SessionId: sessionId,
-			UserId:    UserId,
+	var userID uuid.UUID
+	if value != "" {
+		userID, err = uuid.Parse(value)
+		if err != nil {
+			logger.Error(ctx, "Invalid UUID stored in session %s: %v", sessionId.String(), err)
+			return models.Session{}, ErrSessionNotFound
 		}
-		return session, nil
-	} else {
-		return nil, errors.New("session not found")
 	}
+
+	logger.Info(ctx, "Session %s found for user %s", sessionId.String(), userID.String())
+
+	return models.Session{
+		SessionId: sessionId,
+		UserId:    userID,
+	}, nil
 }
 
-func (mem *InMemorySession) SetSessionUserId(sessionId uuid.UUID, userId uuid.UUID) (*Session, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
+func (s *RedisSessionManager) SetSessionUserId(ctx context.Context, sessionId uuid.UUID, userId uuid.UUID) (models.Session, error) {
+	conn := s.pool.Get()
+	defer conn.Close()
 
-	if _, exists := mem.Sessions[sessionId]; exists {
-		mem.Sessions[sessionId] = userId
-		session := &Session{
-			SessionId: sessionId,
-			UserId:    userId,
-		}
-		return session, nil
-	} else {
-		return nil, errors.New("session not found")
+	exists, err := redis.Int(conn.Do("EXISTS", "session:"+sessionId.String()))
+	if err != nil {
+		logger.Error(ctx, "Error checking session existence: %v", err)
+		return models.Session{}, err
 	}
+	if exists == 0 {
+		logger.Warn(ctx, "Session %s not found when setting user", sessionId.String())
+		return models.Session{}, ErrSessionNotFound
+	}
+
+	_, err = conn.Do("SETEX",
+		"session:"+sessionId.String(),
+		int(24*time.Hour/time.Second),
+		userId.String(),
+	)
+	if err != nil {
+		logger.Error(ctx, "Error setting user ID in session %s: %v", sessionId.String(), err)
+		return models.Session{}, ErrSettingSession
+	}
+
+	logger.Info(ctx, "User %s linked to session %s", userId.String(), sessionId.String())
+
+	return models.Session{
+		SessionId: sessionId,
+		UserId:    userId,
+	}, nil
 }
 
-func (mem *InMemorySession) DeleteSessionById(sessionId uuid.UUID) (bool, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
+func (s *RedisSessionManager) DeleteSessionById(ctx context.Context, sessionId uuid.UUID) (bool, error) {
+	conn := s.pool.Get()
+	defer conn.Close()
 
-	if _, exists := mem.Sessions[sessionId]; exists {
-		delete(mem.Sessions, sessionId)
-		return true, nil
-	} else {
-		return false, errors.New("session not found")
+	deleted, err := redis.Int(conn.Do("DEL", "session:"+sessionId.String()))
+	if err != nil {
+		logger.Error(ctx, "Error deleting session %s: %v", sessionId.String(), err)
+		return false, err
 	}
+
+	if deleted == 0 {
+		logger.Warn(ctx, "Session %s not found for deletion", sessionId.String())
+		return false, ErrSessionNotFound
+	}
+
+	logger.Info(ctx, "Session %s deleted", sessionId.String())
+	return true, nil
 }

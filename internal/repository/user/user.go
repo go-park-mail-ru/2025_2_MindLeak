@@ -1,107 +1,213 @@
 package user
 
 import (
+	"context"
+	"database/sql"
 	"errors"
-	"sync"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
+	"github.com/lib/pq"
 
 	"github.com/google/uuid"
 )
 
+var (
+	ErrUserExists   = errors.New("this user is already registered")
+	ErrUserNotFound = errors.New("user not found")
+	ErrCreatingUser = errors.New("error creating user")
+	ErrGettingUser  = errors.New("error getting user")
+	ErrDeletingUser = errors.New("error deleting user")
+	ErrUpdatingUser = errors.New("error updating user")
+)
+
+const (
+	CreateUserQuery  = `INSERT INTO "user" (email, password, name, avatar) VALUES ($1, $2, $3, $4)`
+	GetUserByIdQuery = `
+		SELECT 
+			u.user_id, u.email, u.password, u.name, u.avatar,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
+			COUNT(DISTINCT s_following.followed_id) AS subscriptions
+		FROM "user" u
+		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
+		LEFT JOIN subscription s_following ON s_following.follower_id = u.user_id
+		WHERE u.user_id = $1
+		GROUP BY u.user_id;
+	`
+	GetUserByEmailQuery = `
+		SELECT 
+			u.user_id, u.email, u.password, u.name, u.avatar,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
+			COUNT(DISTINCT s_following.followed_id) AS subscriptions
+		FROM "user" u
+		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
+		LEFT JOIN subscription s_following ON s_following.follower_id = u.user_id
+		WHERE u.email = $1
+		GROUP BY u.user_id;
+	`
+	GetAllUsersQuery = `
+		SELECT 
+			u.user_id, u.email, u.password, u.name, u.avatar,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
+			COUNT(DISTINCT s_following.followed_id) AS subscriptions
+		FROM "user" u
+		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
+		LEFT JOIN subscription s_following ON s_following.follower_id = u.user_id
+		GROUP BY u.user_id;
+	`
+	DeleteUserQuery = `DELETE FROM "user" WHERE user_id=$1`
+	UpdateUserQuery = `
+		UPDATE "user"
+		SET
+			name = $2,
+			avatar = $3,
+			password = $4,
+			updated_at = NOW()
+		WHERE user_id = $1
+		RETURNING user_id, email, password, name, avatar,
+			(SELECT COUNT(*) FROM subscription WHERE followed_id = $1) AS subscribers,
+			(SELECT COUNT(*) FROM subscription WHERE follower_id = $1) AS subscriptions;
+	`
+)
+
 type UserRepository interface {
-	CreateUser(email string, password string, name string) (*User, error)
-	GetUserById(id uuid.UUID) (*User, error)
-	GetUserByEmail(email string) (*User, error)
-	GetAllUsers() ([]*User, error)
-	DeleteUser(id uuid.UUID) (bool, error)
+	CreateUser(ctx context.Context, email string, password string, name string) (models.User, error)
+	GetUserById(ctx context.Context, id uuid.UUID) (models.User, error)
+	GetUserByEmail(ctx context.Context, email string) (models.User, error)
+	GetAllUsers(ctx context.Context) ([]models.User, error)
+	DeleteUser(ctx context.Context, id uuid.UUID) (bool, error)
+	UpdateUser(ctx context.Context, oldUser models.User) (models.User, error)
 }
 
-type User struct {
-	Id       uuid.UUID `json:"-"`
-	Email    string    `json:"email"`
-	Password string    `json:"-"`
-	Name     string    `json:"name"`
-	Avatar   string    `json:"avatar"`
+type PostgresUser struct {
+	db    *sql.DB
+	minio *minio_client.Client
 }
 
-type InMemoryUser struct {
-	Users []User
-	mu    sync.RWMutex
+func NewPostgresUser(db *sql.DB, minio *minio_client.Client) *PostgresUser {
+	return &PostgresUser{db: db, minio: minio}
 }
 
-func NewInMemoryUser() *InMemoryUser {
-	return &InMemoryUser{
-		Users: make([]User, 0),
-	}
-}
+func (p *PostgresUser) CreateUser(ctx context.Context, email, password, name string) (models.User, error) {
+	var user models.User
+	defaultAvatar := p.minio.GetDefaultAvatar()
 
-func (mem *InMemoryUser) CreateUser(email string, password string, name string) (*User, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
+	err := p.db.QueryRowContext(ctx,
+		CreateUserQuery+" RETURNING user_id, email, password, name, avatar, 0 AS subscribers, 0 AS subscriptions",
+		email, password, name, defaultAvatar,
+	).Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar, &user.Subscribers, &user.Subscriptions)
 
-	for _, user := range mem.Users {
-		if user.Email == email {
-			return nil, errors.New("this user is already registered")
+	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+			logger.Error(ctx, "User already exists: %v", pqErr)
+			return models.User{}, ErrUserExists
 		}
+
+		logger.Error(ctx, "Error creating user: %v", err)
+		return models.User{}, ErrCreatingUser
 	}
-	user := User{
-		Id:       uuid.New(),
-		Email:    email,
-		Password: password,
-		Name:     name,
-		Avatar:   "https://sun9-88.userapi.com/s/v1/ig2/P_e5HW2lWX3ZxayBg73NnzbHzyhxFCXtBseRjSrN_NbemNC78OpkeYfJeXcTOXqyR8NhSwizZKqJEq_R8PhQo607.jpg?quality=95&as=32x40,48x60,72x90,108x135,160x200,240x300,360x450,480x600,540x675,640x800,720x900,1080x1350,1280x1600,1440x1800,1620x2025&from=bu&cs=1620x0",
-	}
-	mem.Users = append(mem.Users, user)
-	copyUser := user
-	return &copyUser, nil
+
+	return user, nil
 }
 
-func (mem *InMemoryUser) GetUserById(userID uuid.UUID) (*User, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
+func (p *PostgresUser) GetUserById(ctx context.Context, userID uuid.UUID) (models.User, error) {
+	var user models.User
 
-	for i := range mem.Users {
-		if mem.Users[i].Id == userID {
-			copyUser := mem.Users[i]
-			return &copyUser, nil
+	err := p.db.QueryRowContext(ctx, GetUserByIdQuery, userID).Scan(
+		&user.Id,
+		&user.Email,
+		&user.Password,
+		&user.Name,
+		&user.Avatar,
+		&user.Subscribers,
+		&user.Subscriptions,
+	)
+
+	if err != nil {
+		logger.Error(ctx, "Error getting user: %v", err)
+		return models.User{}, ErrGettingUser
+	}
+	logger.Info(ctx, "Fetched user for user ID: %v", userID)
+
+	return user, nil
+}
+
+func (p *PostgresUser) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+	var user models.User
+
+	err := p.db.QueryRowContext(ctx, GetUserByEmailQuery, email).Scan(
+		&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar, &user.Subscribers, &user.Subscriptions,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			logger.Error(ctx, "User not found by email: %s", email)
+			return models.User{}, ErrUserNotFound
 		}
+
+		logger.Error(ctx, "Error getting user: %v", err)
+		return models.User{}, ErrGettingUser
 	}
-	return nil, errors.New("user not found")
+
+	return user, nil
 }
 
-func (mem *InMemoryUser) GetUserByEmail(email string) (*User, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
+func (p *PostgresUser) GetAllUsers(ctx context.Context) ([]models.User, error) {
+	users := make([]models.User, 0)
 
-	for i := range mem.Users {
-		if mem.Users[i].Email == email {
-			copyUser := mem.Users[i]
-			return &copyUser, nil
+	rows, err := p.db.QueryContext(ctx, GetAllUsersQuery)
+	if err != nil {
+		logger.Error(ctx, "Error getting all users: %v", err)
+		return nil, ErrGettingUser
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		err = rows.Scan(&user.Id, &user.Email, &user.Password, &user.Name, &user.Avatar, &user.Subscribers, &user.Subscriptions)
+		if err != nil {
+			logger.Error(ctx, "Error getting all users: %v", err)
+			return nil, ErrGettingUser
 		}
+		users = append(users, user)
 	}
-	return nil, errors.New("user not found")
+
+	return users, nil
+
 }
 
-func (mem *InMemoryUser) GetAllUsers() ([]*User, error) {
-	mem.mu.RLock()
-	defer mem.mu.RUnlock()
-	usersCopy := make([]*User, len(mem.Users))
-	for i := range mem.Users {
-		temp := mem.Users[i]
-		usersCopy[i] = &temp
+func (p *PostgresUser) DeleteUser(ctx context.Context, id uuid.UUID) (bool, error) {
+	_, err := p.db.ExecContext(ctx, DeleteUserQuery, id)
+	if err != nil {
+		logger.Error(ctx, "Error deleting user: %v", err)
+		return false, ErrDeletingUser
 	}
 
-	return usersCopy, nil
+	return true, nil
 }
 
-func (mem *InMemoryUser) DeleteUser(userID uuid.UUID) (bool, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
+func (p *PostgresUser) UpdateUser(ctx context.Context, user models.User) (models.User, error) {
+	var updated models.User
 
-	for idx, user := range mem.Users {
-		if user.Id == userID {
-			mem.Users = append(mem.Users[:idx], mem.Users[idx+1:]...)
-			return true, nil
-		}
+	err := p.db.QueryRowContext(ctx, UpdateUserQuery,
+		user.Id,
+		user.Name,
+		user.Avatar,
+		user.Password,
+	).Scan(
+		&updated.Id,
+		&updated.Email,
+		&updated.Password,
+		&updated.Name,
+		&updated.Avatar,
+		&updated.Subscribers,
+		&updated.Subscriptions,
+	)
+
+	if err != nil {
+		logger.Error(ctx, "Error updating user: %v", err)
+		return models.User{}, ErrUpdatingUser
 	}
-	return false, errors.New("user not found")
+
+	return updated, nil
 }
