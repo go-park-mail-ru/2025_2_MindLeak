@@ -253,21 +253,52 @@ func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article)
 	`
 
 	var updated models.Article
+
+	var (
+		mediaURL                                sql.NullString
+		commentsCount, repostsCount, viewsCount sql.NullInt64
+	)
+
 	err := r.db.QueryRowContext(ctx, query,
 		article.Title, article.Content, article.MediaURL, article.Status,
 		article.ID, article.AuthorID,
 	).Scan(
-		&updated.ID, &updated.AuthorID, &updated.Title, &updated.Content, &updated.MediaURL,
+		&updated.ID, &updated.AuthorID, &updated.Title, &updated.Content, &mediaURL,
 		&updated.TopicID, &updated.Status,
-		&updated.CommentsCount, &updated.RepostsCount, &updated.ViewsCount,
+		&commentsCount, &repostsCount, &viewsCount,
 		&updated.CreatedAt, &updated.UpdatedAt,
 	)
+
 	if errors.Is(err, sql.ErrNoRows) {
 		return models.Article{}, ErrArticleNotFound
 	}
 	if err != nil {
 		logger.Error(ctx, err.Error())
 		return models.Article{}, fmt.Errorf("update article: %w", err)
+	}
+
+	if mediaURL.Valid {
+		updated.MediaURL = mediaURL.String
+	} else {
+		updated.MediaURL = ""
+	}
+
+	if commentsCount.Valid {
+		updated.CommentsCount = int(commentsCount.Int64)
+	} else {
+		updated.CommentsCount = 0
+	}
+
+	if repostsCount.Valid {
+		updated.RepostsCount = int(repostsCount.Int64)
+	} else {
+		updated.RepostsCount = 0
+	}
+
+	if viewsCount.Valid {
+		updated.ViewsCount = int(viewsCount.Int64)
+	} else {
+		updated.ViewsCount = 0
 	}
 
 	if err := r.loadTopic(ctx, &updated); err != nil {
