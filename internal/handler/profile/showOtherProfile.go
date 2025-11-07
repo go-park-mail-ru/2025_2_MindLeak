@@ -6,22 +6,21 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 	"net/http"
 )
 
 func (h *Handler) ShowOtherProfileHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	vars := mux.Vars(r)
-	targetIDStr, ok := vars["id"]
-	if !ok || targetIDStr == "" {
-		logger.Error(ctx, "No user ID provided in request")
+	queryParams := r.URL.Query()
+	targetIDStr := queryParams.Get("id")
+
+	if targetIDStr == "" {
+		logger.Error(ctx, "No user ID provided in query")
 		code, msg := h.handleError(fmt.Errorf("no user ID"))
 		json.WriteError(w, code, msg)
 		return
 	}
-	logger.Warn(ctx, " Other profile is user ID: %v", targetIDStr)
 
 	targetID, err := uuid.Parse(targetIDStr)
 	if err != nil {
@@ -30,7 +29,8 @@ func (h *Handler) ShowOtherProfileHandler(w http.ResponseWriter, r *http.Request
 		json.WriteError(w, code, msg)
 		return
 	}
-	logger.Warn(ctx, "Fetching profile for user ID: %v", targetID)
+
+	logger.Info(ctx, "Fetching profile for user ID: %v", targetID)
 	prof, err := h.Usecase.ShowProfile(ctx, targetID)
 	if err != nil {
 		code, msg := h.handleError(err)
