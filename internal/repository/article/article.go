@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/google/uuid"
@@ -28,10 +30,10 @@ type ArticleRepository interface {
 }
 
 type ArticleRepo struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewArticleRepo(db *sql.DB) *ArticleRepo {
+func NewArticleRepo(db *pgxpool.Pool) *ArticleRepo {
 	return &ArticleRepo{db: db}
 }
 
@@ -43,7 +45,7 @@ func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, tit
 	`
 
 	var a models.Article
-	err := r.db.QueryRowContext(ctx, query, authorID, title, content, topicID).Scan(
+	err := r.db.QueryRow(ctx, query, authorID, title, content, topicID).Scan(
 		&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.Topic.TopicId,
 		&a.Status, &a.CreatedAt, &a.UpdatedAt,
 	)
@@ -78,7 +80,7 @@ func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (models.
 	`
 
 	var a models.Article
-	err := r.db.QueryRowContext(ctx, query, id).Scan(
+	err := r.db.QueryRow(ctx, query, id).Scan(
 		&a.ID, &a.AuthorID, &a.Title, &a.Content,
 		&a.Status, &a.CreatedAt, &a.UpdatedAt,
 		&a.Topic.TopicId, &a.Topic.Title,
@@ -109,7 +111,7 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 		ORDER BY a.created_at DESC
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, authorID)
+	rows, err := r.db.Query(ctx, query, authorID)
 	if err != nil {
 		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("get articles by author: %w", err)
@@ -149,7 +151,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 		OFFSET $1
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, feed.Offset)
+	rows, err := r.db.Query(ctx, query, feed.Offset)
 	if err != nil {
 		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("get feed articles: %w", err)
@@ -195,7 +197,7 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 		OFFSET $2 LIMIT 5
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, topicTitle, offset)
+	rows, err := r.db.Query(ctx, query, topicTitle, offset)
 	if err != nil {
 		logger.Error(ctx, err.Error())
 		return nil, fmt.Errorf("get articles by topic: %w", err)
@@ -221,20 +223,23 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 }
 
 func (r *ArticleRepo) DeleteArticle(ctx context.Context, id uuid.UUID) (bool, error) {
-	query := `DELETE FROM article WHERE article_id = $1`
-	result, err := r.db.ExecContext(ctx, query, id)
+	query := `
+		DELETE FROM article 
+		WHERE article_id = $1 
+		RETURNING article_id
+	`
+
+	var deletedID uuid.UUID
+	err := r.db.QueryRow(ctx, query, id).Scan(&deletedID)
+	if err == pgx.ErrNoRows {
+		return false, nil // ничего не удалено
+	}
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(ctx, "delete article failed: %v", err)
 		return false, fmt.Errorf("delete article: %w", err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		logger.Error(ctx, err.Error())
-		return false, fmt.Errorf("rows affected: %w", err)
-	}
-
-	return rowsAffected > 0, nil
+	return true, nil
 }
 
 func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article) (models.Article, error) {
@@ -259,7 +264,7 @@ func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article)
 		commentsCount, repostsCount, viewsCount sql.NullInt64
 	)
 
-	err := r.db.QueryRowContext(ctx, query,
+	err := r.db.QueryRow(ctx, query,
 		article.Title, article.Content, article.MediaURL, article.Status,
 		article.ID, article.AuthorID,
 	).Scan(
@@ -315,10 +320,10 @@ func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article)
 
 func (r *ArticleRepo) loadAuthor(ctx context.Context, a *models.Article) error {
 	query := `SELECT name, avatar FROM "user" WHERE user_id = $1`
-	return r.db.QueryRowContext(ctx, query, a.AuthorID).Scan(&a.AuthorName, &a.AuthorAvatar)
+	return r.db.QueryRow(ctx, query, a.AuthorID).Scan(&a.AuthorName, &a.AuthorAvatar)
 }
 
 func (r *ArticleRepo) loadTopic(ctx context.Context, a *models.Article) error {
 	query := `SELECT title FROM topic WHERE topic_id = $1`
-	return r.db.QueryRowContext(ctx, query, a.Topic.TopicId).Scan(&a.Topic.Title)
+	return r.db.QueryRow(ctx, query, a.Topic.TopicId).Scan(&a.Topic.Title)
 }
