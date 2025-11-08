@@ -1,18 +1,36 @@
 package dto
 
 import (
-	"time"
-
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/google/uuid"
 )
 
-type ArticleOutputDTO struct {
-	Id           uuid.UUID `json:"-"`
-	AuthorId     uuid.UUID `json:"-"`
-	Title        string    `json:"title"`
-	Content      string    `json:"content"`
-	CreatedAt    time.Time `json:"-"`
-	Image        string    `json:"image"`
-	AuthorName   string    `json:"author_name"`
-	AuthorAvatar string    `json:"author_avatar"`
+type CreateArticleInput struct {
+	Title   string `json:"title" validate:"required,min=1,max=200"`
+	Content string `json:"content" validate:"required,min=1"`
+	TopicID int    `json:"topic_id" validate:"required"`
+}
+
+type UpdateArticleInput struct {
+	Title   *string       `json:"title,omitempty"`
+	Content *string       `json:"content,omitempty"`
+	Status  *string       `json:"status,omitempty"`
+	TopicID *int          `json:"topic_id,omitempty"`
+	Topic   *models.Topic `json:"topic,omitempty"`
+}
+
+type ArticleOutput struct {
+	ID            uuid.UUID    `json:"id"`
+	AuthorID      uuid.UUID    `json:"author_id"`
+	Title         string       `json:"title"`
+	Content       string       `json:"content"`
+	MediaURL      string       `json:"media_url,omitempty"`
+	TopicID       int          `json:"topic_id"`
+	Status        string       `json:"status"`
+	CommentsCount int          `json:"comments_count"`
+	RepostsCount  int          `json:"reposts_count"`
+	ViewsCount    int          `json:"views_count"`
+	Topic         models.Topic `db:"-"`
+	AuthorName    string       `json:"author_name"`
+	AuthorAvatar  string       `json:"author_avatar"`
 }

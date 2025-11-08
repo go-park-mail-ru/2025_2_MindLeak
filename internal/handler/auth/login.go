@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
@@ -17,6 +18,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
+		logger.Error(ctx, err.Error())
 		return
 	}
 
@@ -29,10 +31,12 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
+		logger.Error(ctx, err.Error())
 		return
 	}
 
 	userOutputDto := &dto.UserOutputLogin{
+		Id:     user.Id,
 		Name:   user.Name,
 		Email:  user.Email,
 		Avatar: user.Avatar,
@@ -42,8 +46,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Write(w, http.StatusOK, userOutputDto)
 	if err != nil {
-		code, msg := h.handleError(err)
-		json.WriteError(w, code, msg)
+		logger.Error(ctx, err.Error())
 		return
 	}
 

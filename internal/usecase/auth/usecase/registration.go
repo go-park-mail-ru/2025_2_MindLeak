@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/dto"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/security"
 	"github.com/google/uuid"
 	"regexp"
 	"strings"
@@ -14,33 +16,54 @@ import (
 func (u *Usecase) Registration(ctx context.Context, user models.User) (dto.RegisteredUserDto, uuid.UUID, error) {
 
 	if err := validateEmail(user.Email); err != nil {
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate email: %w", err)
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	if err := validatePassword(user.Password); err != nil {
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate password: %w", err)
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	if err := validateName(user.Name); err != nil {
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("validate name: %w", err)
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
-	newUser, err := u.userRepo.CreateUser(ctx, user.Email, user.Password, user.Name)
+	hashed, err := security.HashPassword(user.Password)
 	if err != nil {
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("create user: %w", err)
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
+	}
+
+	hashedStr := fmt.Sprintf("%x", hashed)
+
+	newUser, err := u.userRepo.CreateUser(ctx, user.Email, hashedStr, user.Name)
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
+	}
+
+	_, err = u.profileRepo.CreateProfile(ctx, newUser.Id)
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	session, err := u.sessionRepo.CreateSession(ctx)
 	if err != nil {
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("create session: %w", err)
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	_, err = u.sessionRepo.SetSessionUserId(ctx, session.SessionId, newUser.Id)
 	if err != nil {
-		return dto.RegisteredUserDto{}, uuid.UUID{}, fmt.Errorf("set session: %w", err)
+		logger.Error(ctx, err.Error())
+		return dto.RegisteredUserDto{}, uuid.UUID{}, u.handleError(err)
 	}
 
 	outDto := dto.RegisteredUserDto{
+		Id:     newUser.Id,
 		Email:  newUser.Email,
 		Name:   newUser.Name,
 		Avatar: newUser.Avatar,

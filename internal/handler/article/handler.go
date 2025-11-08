@@ -19,11 +19,11 @@ func NewArticleHandler(u article.Usecase) *Handler {
 func (h *Handler) handleError(err error) (int, string) {
 	switch {
 	case errors.Is(err, usecase.ErrServerError):
-		return http.StatusInternalServerError, "internal server error"
+		return http.StatusInternalServerError, "internal apiserver error"
 	case errors.Is(err, usecase.ErrArticleExists):
-		return http.StatusInternalServerError, "internal server error"
+		return http.StatusInternalServerError, "internal apiserver error"
 	case errors.Is(err, usecase.ErrArticleNotFound):
-		return http.StatusInternalServerError, "internal server error"
+		return http.StatusInternalServerError, "internal apiserver error"
 	default:
 		return http.StatusInternalServerError, "unexpected error"
 	}

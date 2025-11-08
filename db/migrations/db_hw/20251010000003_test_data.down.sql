@@ -1,0 +1,9 @@
+DELETE FROM notification;
+DELETE FROM comment;
+DELETE FROM article_tag;
+DELETE FROM article_category;
+DELETE FROM article;
+DELETE FROM tag;
+DELETE FROM category;
+DELETE FROM user_profile;
+DELETE FROM user;
