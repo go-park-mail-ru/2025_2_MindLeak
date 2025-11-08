@@ -183,7 +183,7 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 
 func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string, offset int) ([]models.Article, error) {
 	query := `
-		SELECT a.article_id, a.author_id, a.title, a.content, 
+		SELECT a.article_id, a.author_id, a.title, a.content, a.media_url, 
 		       a.status, a.created_at, a.updated_at,
 		       t.topic_id, t.title AS topic_title,
 		       u.name, u.avatar
@@ -205,8 +205,10 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 	var articles []models.Article
 	for rows.Next() {
 		var a models.Article
+		var mediaURL sql.NullString
+
 		if err := rows.Scan(
-			&a.ID, &a.AuthorID, &a.Title, &a.Content,
+			&a.ID, &a.AuthorID, &a.Title, &a.Content, &mediaURL,
 			&a.Status, &a.CreatedAt, &a.UpdatedAt,
 			&a.Topic.TopicId, &a.Topic.Title,
 			&a.AuthorName, &a.AuthorAvatar,
@@ -214,6 +216,13 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 			logger.Error(ctx, err.Error())
 			return nil, err
 		}
+
+		if mediaURL.Valid {
+			a.MediaURL = mediaURL.String
+		} else {
+			a.MediaURL = ""
+		}
+
 		articles = append(articles, a)
 	}
 
