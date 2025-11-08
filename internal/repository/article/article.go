@@ -98,7 +98,7 @@ func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (models.
 
 func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.UUID) ([]models.Article, error) {
 	query := `
-		SELECT a.article_id, a.title, a.content, 
+		SELECT a.article_id, a.title, a.content, a.media_url,
 		       a.status, a.created_at, a.updated_at,
 		       t.topic_id, t.title AS topic_title,
 		       u.name, u.avatar
@@ -119,8 +119,10 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 	var articles []models.Article
 	for rows.Next() {
 		var a models.Article
+		var mediaURL sql.NullString
+
 		if err := rows.Scan(
-			&a.ID, &a.Title, &a.Content,
+			&a.ID, &a.Title, &a.Content, &mediaURL,
 			&a.Status, &a.CreatedAt, &a.UpdatedAt,
 			&a.Topic.TopicId, &a.Topic.Title,
 			&a.AuthorName, &a.AuthorAvatar,
@@ -128,6 +130,13 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 			logger.Error(ctx, err.Error())
 			return nil, err
 		}
+
+		if mediaURL.Valid {
+			a.MediaURL = mediaURL.String
+		} else {
+			a.MediaURL = ""
+		}
+
 		a.AuthorID = authorID
 		articles = append(articles, a)
 	}
