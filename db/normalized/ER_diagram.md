@@ -1,99 +1,117 @@
 ```mermaid
 erDiagram
-    USER ||--o{ PROFILE : has
+    USER ||--o| PROFILE : has
     USER ||--o{ ARTICLE : writes
     USER ||--o{ COMMENT : posts
     USER ||--o{ ARTICLE_LIKE : likes
     USER ||--o{ COMMENT_LIKE : likes
     USER ||--o{ NOTIFICATION : receives
+    USER ||--o{ SUBSCRIPTION_FOLLOWER : follows
+    USER ||--o{ SUBSCRIPTION_FOLLOWED : followed_by
+    USER ||--o{ MEDIA : uploads
+
     ARTICLE ||--o{ COMMENT : has
-    ARTICLE ||--o{ ARTICLE_CATEGORY : belongs
-    ARTICLE ||--o{ ARTICLE_TAG : has
-    ARTICLE ||--o{ ARTICLE_LIKE : has
-    CATEGORY ||--o{ ARTICLE_CATEGORY : contains
-    TAG ||--o{ ARTICLE_TAG : tags
-    COMMENT ||--o{ COMMENT_LIKE : has
+    ARTICLE ||--o{ ARTICLE_LIKE : liked_by
+    ARTICLE ||--o{ MEDIA : contains
+    ARTICLE }o--|| TOPIC : belongs_to
+
+    COMMENT ||--o{ COMMENT_LIKE : liked_by
+    COMMENT ||--o| COMMENT : replies_to
+
+    TOPIC }o--o{ ARTICLE : contains
 
     USER {
-        UUID USER_ID PK
-        TEXT LOGIN UK
-        TEXT PASSWORD
-        TEXT EMAIL UK
-        TEXT NAME
-        TEXT AVATAR
-        TIMESTAMPTZ CREATED_AT
-        TIMESTAMPTZ UPDATED_AT
+        UUID user_id PK
+        TEXT login UK
+        TEXT password
+        TEXT email UK
+        TEXT name
+        TEXT avatar
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
+
     PROFILE {
-        UUID PROFILE_ID PK
-        UUID USER_ID FK
-        TEXT PHONE
-        TEXT COUNTRY
-        TEXT LANGUAGE
-        TEXT SEX
-        DATE DATE_OF_BIRTH
-        INT AGE
-        TEXT DESCRIPTION
-        TEXT COVER_URL
-        TIMESTAMPTZ CREATED_AT
-        TIMESTAMPTZ UPDATED_AT
+        UUID profile_id PK
+        UUID user_id FK,UK
+        TEXT phone
+        TEXT country
+        TEXT language
+        TEXT sex
+        DATE date_of_birth
+        INT age
+        TEXT description
+        TEXT cover_url
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
+
     ARTICLE {
-        UUID ARTICLE_ID PK
-        TEXT TITLE
-        TEXT CONTENT
-        UUID AUTHOR_ID FK
-        TEXT MEDIA_URL
-        INT TOPIC_ID FK
-        TEXT STATUS
-        INT COMMENTS_COUNT
-        INT REPOSTS_COUNT
-        INT VIEWS_COUNT
-        TIMESTAMPTZ CREATED_AT
-        TIMESTAMPTZ UPDATED_AT
+        UUID article_id PK
+        TEXT title
+        TEXT content
+        UUID author_id FK
+        TEXT media_url
+        INT topic_id FK
+        article_status status
+        INT comments_count
+        INT reposts_count
+        INT views_count
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
     }
-    CATEGORY {
-        UUID CATEGORY_ID PK
-        TEXT NAME UK
-        TEXT DESCRIPTION
-        TIMESTAMPTZ CREATED_AT
-        TIMESTAMPTZ UPDATED_AT
+
+    TOPIC {
+        INT topic_id PK
+        TEXT title UK
     }
-    TAG {
-        UUID TAG_ID PK
-        TEXT NAME UK
-        TIMESTAMPTZ CREATED_AT
-    }
+
     COMMENT {
-        UUID COMMENT_ID PK
-        UUID ARTICLE_ID FK
-        UUID USER_ID FK
-        TEXT CONTENT
-        TIMESTAMPTZ CREATED_AT
-        TIMESTAMPTZ UPDATED_AT
-        UUID REPLY_TO FK
+        UUID comment_id PK
+        UUID article_id FK
+        UUID user_id FK
+        TEXT content
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+        UUID reply_to FK
     }
+
     ARTICLE_LIKE {
-        UUID USER_ID PK,FK
-        UUID ARTICLE_ID PK,FK
-        TIMESTAMPTZ CREATED_AT
+        UUID user_id PK,FK
+        UUID article_id PK,FK
+        TIMESTAMPTZ created_at
     }
+
     COMMENT_LIKE {
-        UUID USER_ID PK,FK
-        UUID COMMENT_ID PK,FK
-        TIMESTAMPTZ CREATED_AT
+        UUID user_id PK,FK
+        UUID comment_id PK,FK
+        TIMESTAMPTZ created_at
     }
-    NOTIFICATION {
-        UUID NOTIFICATION_ID PK
-        UUID USER_ID FK
-        TEXT TYPE
-        TEXT CONTENT
-        BOOLEAN IS_READ
-        TIMESTAMPTZ CREATED_AT
+
+    MEDIA {
+        UUID media_id PK
+        UUID article_id FK
+        UUID uploader_id FK
+        media_type type
+        TEXT mime
+        TEXT url
+        BIGINT size_bytes
+        TEXT description
+        TIMESTAMPTZ created_at
     }
+
     SUBSCRIPTION {
-        UUID FOLLOWER_ID FK
-        UUID FOLLOWED_ID FK
-        TIMESTAMPTZ CREATED_AT
+        UUID follower_id PK,FK
+        UUID followed_id PK,FK
+        TIMESTAMPTZ created_at
+    }
+
+    NOTIFICATION {
+        UUID notification_id PK
+        UUID user_id FK
+        notification_type type
+        TEXT content
+        BOOLEAN is_read
+        TIMESTAMPTZ created_at
     }
 ```

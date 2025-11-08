@@ -8,40 +8,40 @@
 **Описание:** Таблица хранения учетных записей пользователей для авторизации и регистрации.  
 **Отношение:**  
 USER (  
-USER_ID UUID PRIMARY KEY,  
-LOGIN TEXT NOT NULL UNIQUE,  
-PASSWORD TEXT NOT NULL,  
-EMAIL TEXT NOT NULL UNIQUE,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-NAME TEXT NOT NULL,  
-AVATAR TEXT  
+user_id UUID PK DEFAULT gen_random_uuid(),
+login TEXT NOT NULL UNIQUE,
+password TEXT NOT NULL,
+email TEXT NOT NULL UNIQUE,
+name TEXT NOT NULL,
+avatar TEXT,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 )  
 **Функциональные зависимости:**  
-{USER_ID} → LOGIN, PASSWORD, EMAIL, CREATED_AT, UPDATED_AT, NAME, AVATAR  
-{LOGIN} → USER_ID, PASSWORD, EMAIL, CREATED_AT, UPDATED_AT, NAME, AVATAR  
-{EMAIL} → USER_ID, LOGIN, PASSWORD, CREATED_AT, UPDATED_AT, NAME, AVATAR
+`{user_id} → {login, password, email, name, avatar, created_at, updated_at}`  
+`{login} → {user_id, password, email, name, avatar, created_at, updated_at}`  
+`{email} → {user_id, login, password, name, avatar, created_at, updated_at}`
 
 #### Relation: `profile`
 **Описание:** Таблица хранения профилей пользователей для отображения публичной информации.  
 **Отношение:**  
 PROFILE (  
-PROFILE_ID UUID PRIMARY KEY,  
-USER_ID UUID NOT NULL,  
-PHONE TEXT,  
-COUNTRY TEXT,  
-LANGUAGE TEXT,  
-SEX TEXT DEFAULT 'undefined',  
-DATE_OF_BIRTH DATE,  
-AGE INT,  
-DESCRIPTION TEXT,  
-COVER_URL TEXT,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID) ON DELETE CASCADE  
+profile_id UUID PK DEFAULT gen_random_uuid(),
+user_id UUID NOT NULL UNIQUE REFERENCES user(user_id) ON DELETE CASCADE,
+phone TEXT,
+country TEXT,
+language TEXT,
+sex TEXT DEFAULT 'undefined',
+date_of_birth DATE,
+age INT,
+description TEXT,
+cover_url TEXT,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 )  
 **Функциональные зависимости:**  
-{USER_ID} → PHONE, COUNTRY, LANGUAGE, SEX, DATE_OF_BIRTH, AGE, DESCRIPTION, COVER_URL, CREATED_AT, UPDATED_AT
+`{user_id} → {profile_id, phone, country, language, sex, date_of_birth, age, description, cover_url, created_at, updated_at}`  
+`{profile_id} → {user_id, ...}`
 
 ### Статьи и контент:
 
@@ -49,115 +49,127 @@ FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID) ON DELETE CASCADE
 **Описание:** Таблица хранения статей, создаваемых авторами.  
 **Отношение:**  
 ARTICLE (  
-ARTICLE_ID UUID PRIMARY KEY,  
-TITLE TEXT NOT NULL,  
-CONTENT TEXT NOT NULL,  
-AUTHOR_ID UUID NOT NULL,  
-MEDIA_URL TEXT,  
-TOPIC_ID INT NOT NULL,  
-STATUS article_status NOT NULL DEFAULT 'draft',  
-COMMENTS_COUNT INT DEFAULT 0,  
-REPOSTS_COUNT INT DEFAULT 0,  
-VIEWS_COUNT INT DEFAULT 0,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-FOREIGN KEY (AUTHOR_ID) REFERENCES USER(USER_ID) ON DELETE CASCADE,  
-FOREIGN KEY (TOPIC_ID) REFERENCES TOPIC(TOPIC_ID) ON DELETE NO ACTION  
+article_id UUID PK DEFAULT gen_random_uuid(),
+title TEXT NOT NULL,
+content TEXT NOT NULL,
+author_id UUID NOT NULL REFERENCES user(user_id) ON DELETE CASCADE,
+media_url TEXT,
+topic_id INT NOT NULL REFERENCES topic(topic_id) ON DELETE NO ACTION,
+status article_status NOT NULL DEFAULT 'draft',
+comments_count INT DEFAULT 0,
+reposts_count INT DEFAULT 0,
+views_count INT DEFAULT 0,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 )  
 **Функциональные зависимости:**  
-{ARTICLE_ID} → TITLE, CONTENT, AUTHOR_ID, MEDIA_URL, TOPIC_ID, STATUS, COMMENTS_COUNT, REPOSTS_COUNT, VIEWS_COUNT, CREATED_AT, UPDATED_AT  
-{AUTHOR_ID} → ARTICLE_ID, TITLE, CONTENT, MEDIA_URL, STATUS, CREATED_AT, UPDATED_AT  
-{TOPIC_ID} → ARTICLE_ID, TITLE, CONTENT, AUTHOR_ID, MEDIA_URL, STATUS, CREATED_AT, UPDATED_AT
-
-#### Relation: `category`
-**Описание:** Таблица хранения категорий для классификации статей.  
-**Отношение:**  
-CATEGORY (  
-CATEGORY_ID UUID PRIMARY KEY,  
-NAME TEXT NOT NULL UNIQUE,  
-DESCRIPTION TEXT,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP  
-)  
-**Функциональные зависимости:**  
-{CATEGORY_ID} → NAME, DESCRIPTION, CREATED_AT, UPDATED_AT  
-{NAME} → CATEGORY_ID, DESCRIPTION, CREATED_AT, UPDATED_AT
+`{article_id} → {title, content, author_id, media_url, topic_id, status, comments_count, reposts_count, views_count, created_at, updated_at}`
 
 #### Relation: `tag`
 **Описание:** Таблица хранения тегов для пометки статей.  
 **Отношение:**  
-TAG (  
-TAG_ID UUID PRIMARY KEY,  
-NAME TEXT NOT NULL UNIQUE,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP  
-)  
+TAG (
+tag_id UUID PK DEFAULT gen_random_uuid(),
+name TEXT NOT NULL UNIQUE,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
 **Функциональные зависимости:**  
-{TAG_ID} → NAME, CREATED_AT  
-{NAME} → TAG_ID, CREATED_AT
+`{tag_id} → {name, created_at}`  
+`{name} → {tag_id, created_at}`
+
+#### Relation: `topic`
+**Описание:** Таблица хранения топиков статей.  
+**Отношение:**
+TOPIC (
+topic_id INT PK,
+title TEXT NOT NULL UNIQUE
+)
+**Функциональные зависимости:**  
+`{topic_id} → {title}`  
+`{title} → {topic_id}`
 
 #### Relation: `comment`
 **Описание:** Таблица хранения комментариев к статьям.  
 **Отношение:**  
 COMMENT (  
-COMMENT_ID UUID PRIMARY KEY,  
-ARTICLE_ID UUID NOT NULL,  
-USER_ID UUID NOT NULL,  
-CONTENT TEXT NOT NULL,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-REPLY_TO UUID,  
-FOREIGN KEY (ARTICLE_ID) REFERENCES ARTICLE(ARTICLE_ID) ON DELETE CASCADE,  
-FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID) ON DELETE RESTRICT,  
-FOREIGN KEY (REPLY_TO) REFERENCES COMMENT(COMMENT_ID) ON DELETE NO ACTION  
+comment_id UUID PK DEFAULT gen_random_uuid(),
+article_id UUID NOT NULL REFERENCES article(article_id) ON DELETE CASCADE,
+user_id UUID NOT NULL REFERENCES user(user_id) ON DELETE RESTRICT,
+content TEXT NOT NULL,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+reply_to UUID REFERENCES comment(comment_id) ON DELETE NO ACTION
 )  
 **Функциональные зависимости:**  
-{COMMENT_ID} → ARTICLE_ID, USER_ID, CONTENT, CREATED_AT, UPDATED_AT, REPLY_TO  
-{ARTICLE_ID} → COMMENT_ID, USER_ID, CONTENT, CREATED_AT, UPDATED_AT  
-{USER_ID} → COMMENT_ID, ARTICLE_ID, CONTENT, CREATED_AT, UPDATED_AT
+`{comment_id} → {article_id, user_id, content, created_at, updated_at, reply_to}`
 
+#### Relation: `media`
+**Описание:** Таблица для хранения медиа-файлов(сами медиа лежат в minIO).  
+**Отношение:**  
+MEDIA (
+media_id UUID PK DEFAULT gen_random_uuid(),
+article_id UUID NOT NULL REFERENCES article(article_id) ON DELETE CASCADE,
+uploader_id UUID REFERENCES user(user_id) ON DELETE SET NULL,
+type media_type NOT NULL,
+mime TEXT NOT NULL,
+url TEXT NOT NULL,
+size_bytes BIGINT,
+description TEXT,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+**Функциональные зависимости:**  
+`{media_id} → {article_id, uploader_id, type, mime, url, size_bytes, description, created_at}`
 
 #### Relation: `article_like`
 **Описание:** Таблица хранения лайков пользователей к статьям.  
 **Отношение:**  
 ARTICLE_LIKE (  
-USER_ID UUID NOT NULL,  
-ARTICLE_ID UUID NOT NULL,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-PRIMARY KEY (USER_ID, ARTICLE_ID),  
-FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID) ON DELETE CASCADE,  
-FOREIGN KEY (ARTICLE_ID) REFERENCES ARTICLE(ARTICLE_ID) ON DELETE CASCADE  
+user_id UUID NOT NULL REFERENCES user(user_id) ON DELETE CASCADE,
+article_id UUID NOT NULL REFERENCES article(article_id) ON DELETE CASCADE,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (user_id, article_id)
 )  
 **Функциональные зависимости:**  
-{USER_ID, ARTICLE_ID} → CREATED_AT
+`{user_id, article_id} → {created_at}`
 
 #### Relation: `comment_like`
 **Описание:** Таблица хранения лайков пользователей к комментариям.  
 **Отношение:**  
 COMMENT_LIKE (  
-USER_ID UUID NOT NULL,  
-COMMENT_ID UUID NOT NULL,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-PRIMARY KEY (USER_ID, COMMENT_ID),  
-FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID) ON DELETE CASCADE,  
-FOREIGN KEY (COMMENT_ID) REFERENCES COMMENT(COMMENT_ID) ON DELETE CASCADE  
+user_id UUID NOT NULL REFERENCES user(user_id) ON DELETE CASCADE,
+comment_id UUID NOT NULL REFERENCES comment(comment_id) ON DELETE CASCADE,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (user_id, comment_id) 
 )  
 **Функциональные зависимости:**  
-{USER_ID, COMMENT_ID} → CREATED_AT
+`{user_id, comment_id} → {created_at}`
 
 #### Relation: `notification`
 **Описание:** Таблица хранения уведомлений для пользователей (например, о лайках или комментариях).  
 **Отношение:**  
 NOTIFICATION (  
-NOTIFICATION_ID UUID PRIMARY KEY,  
-USER_ID UUID NOT NULL,  
-TYPE TEXT NOT NULL CHECK (TYPE IN ('like', 'comment', 'follow')),  
-CONTENT TEXT NOT NULL,  
-IS_READ BOOLEAN NOT NULL DEFAULT FALSE,  
-CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-FOREIGN KEY (USER_ID) REFERENCES USER(USER_ID) ON DELETE CASCADE  
+Nnotification_id UUID PK DEFAULT gen_random_uuid(),
+user_id UUID NOT NULL REFERENCES user(user_id) ON DELETE CASCADE,
+type notification_type NOT NULL,
+content TEXT NOT NULL,
+is_read BOOLEAN NOT NULL DEFAULT FALSE,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 )  
 **Функциональные зависимости:**  
-{NOTIFICATION_ID} → USER_ID, TYPE, CONTENT, IS_READ, CREATED_AT
+`{notification_id} → {user_id, type, content, is_read, created_at}`
+
+#### Relation: `subscription`
+**Описание:** Таблица хранения подписок.  
+**Отношение:**  
+SUBSCRIPTION (
+follower_id UUID NOT NULL REFERENCES user(user_id) ON DELETE CASCADE,
+followed_id UUID NOT NULL REFERENCES user(user_id) ON DELETE CASCADE,
+created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+PRIMARY KEY (follower_id, followed_id),
+CHECK (follower_id <> followed_id)
+)
+**Функциональные зависимости:**  
+`{follower_id, followed_id} → {created_at}`
 
 ### Дополнительные хранилища:
 - **Redis**: Используется для хранения сессий пользователей. Данные хранятся в формате ключ-значение, где ключ — это `session_id` (UUID), а значение — JSON с информацией о пользователе и сроке действия сессии. Не отображается в реляционной схеме, так как не является частью PostgreSQL.
