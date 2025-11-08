@@ -34,6 +34,7 @@ func (h *Handler) GetArticlesByAuthorId(w http.ResponseWriter, r *http.Request) 
 	for _, a := range articles {
 		out = append(out, dto.ArticleOutput{
 			ID:           a.ID,
+			AuthorID:     a.AuthorID,
 			Title:        a.Title,
 			Content:      a.Content,
 			MediaURL:     a.MediaURL,
