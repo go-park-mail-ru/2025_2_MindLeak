@@ -239,17 +239,18 @@ func (r *ArticleRepo) DeleteArticle(ctx context.Context, id uuid.UUID) (bool, er
 
 func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article) (models.Article, error) {
 	query := `
-		UPDATE article
-		SET 
-		    title = COALESCE($1, title),
-		    content = COALESCE($2, content),
-		    media_url = COALESCE($3, media_url),
-		    status = COALESCE($4, status),
-		    updated_at = CURRENT_TIMESTAMP
-		WHERE article_id = $5 AND author_id = $6
-		RETURNING 
-		    article_id, author_id, title, content, media_url, topic_id, status,
-		    comments_count, reposts_count, views_count, created_at, updated_at
+			UPDATE article
+			SET 
+				title = COALESCE($1, title),
+				content = COALESCE($2, content),
+				media_url = COALESCE($3, media_url),
+				status = COALESCE($4, status),
+				topic_id = COALESCE($5, topic_id),
+				updated_at = CURRENT_TIMESTAMP
+			WHERE article_id = $6 AND author_id = $7
+			RETURNING 
+				article_id, author_id, title, content, media_url, topic_id, status,
+				comments_count, reposts_count, views_count, created_at, updated_at
 	`
 
 	var updated models.Article
@@ -261,6 +262,7 @@ func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article)
 
 	err := r.db.QueryRowContext(ctx, query,
 		article.Title, article.Content, article.MediaURL, article.Status,
+		article.TopicID,
 		article.ID, article.AuthorID,
 	).Scan(
 		&updated.ID, &updated.AuthorID, &updated.Title, &updated.Content, &mediaURL,
@@ -320,5 +322,5 @@ func (r *ArticleRepo) loadAuthor(ctx context.Context, a *models.Article) error {
 
 func (r *ArticleRepo) loadTopic(ctx context.Context, a *models.Article) error {
 	query := `SELECT title FROM topic WHERE topic_id = $1`
-	return r.db.QueryRowContext(ctx, query, a.Topic.TopicId).Scan(&a.Topic.Title)
+	return r.db.QueryRowContext(ctx, query, a.TopicID).Scan(&a.Topic.Title)
 }

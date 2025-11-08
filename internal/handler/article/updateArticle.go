@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// internal/handler/article/update.go
 func (h *Handler) UpdateArticle(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

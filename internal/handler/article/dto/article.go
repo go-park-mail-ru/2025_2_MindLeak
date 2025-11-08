@@ -12,10 +12,11 @@ type CreateArticleInput struct {
 }
 
 type UpdateArticleInput struct {
-	Title   *string `json:"title,omitempty"`
-	Content *string `json:"content,omitempty"`
-	Status  *string `json:"status,omitempty"`
-	TopicID *int    `json:"topic_id,omitempty"`
+	Title   *string       `json:"title,omitempty"`
+	Content *string       `json:"content,omitempty"`
+	Status  *string       `json:"status,omitempty"`
+	TopicID *int          `json:"topic_id,omitempty"`
+	Topic   *models.Topic `json:"topic,omitempty"`
 }
 
 type ArticleOutput struct {
