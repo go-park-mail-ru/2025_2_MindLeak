@@ -31,7 +31,7 @@ func CSRFMiddleware(next http.Handler) http.Handler {
 					Name:     csrfCookieName,
 					Value:    token,
 					Path:     "/",
-					Secure:   false,
+					Secure:   true,
 					HttpOnly: false,
 					SameSite: http.SameSiteNoneMode,
 					Expires:  time.Now().Add(1 * time.Hour),
