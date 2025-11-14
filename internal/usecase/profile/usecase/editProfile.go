@@ -2,10 +2,20 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/security"
 	"github.com/google/uuid"
+	"regexp"
+	"strings"
+	"time"
+	"unicode/utf8"
+)
+
+var (
+	InvalidPassword = errors.New("invalid password")
+	InvalidName     = errors.New("invalid name")
 )
 
 func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfile models.Profile, newUser models.User) (models.Profile, models.User, error) {
@@ -26,10 +36,94 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 		return models.Profile{}, models.User{}, u.handleError(err)
 	}
 
-	profileChanged := false
-	userChanged := false
+	if err := u.ValidateProfileData(newProfile); err != nil {
+		return models.Profile{}, models.User{}, u.handleError(err)
+	}
 
-	// === PROFILE ===
+	if err := ValidateUserData(newUser); err != nil {
+		return models.Profile{}, models.User{}, u.handleError(err)
+	}
+
+	profileChanged := u.IsEditedProfileData(newProfile, &oldProfile)
+	userChanged, err := u.IsEditedUserData(newUser, &oldUser)
+	if err != nil {
+		return models.Profile{}, models.User{}, u.handleError(err)
+	}
+
+	var updatedProfile models.Profile
+	var updatedUser models.User
+
+	if profileChanged {
+		updatedProfile, err = u.profileRepo.UpdateProfile(ctx, oldProfile)
+		if err != nil {
+			return models.Profile{}, models.User{}, u.handleError(err)
+		}
+	} else {
+		updatedProfile = oldProfile
+	}
+
+	if userChanged {
+		updatedUser, err = u.userRepo.UpdateUser(ctx, oldUser)
+		if err != nil {
+			return models.Profile{}, models.User{}, u.handleError(err)
+		}
+	} else {
+		updatedUser = oldUser
+	}
+
+	return updatedProfile, updatedUser, nil
+}
+
+func (u *Usecase) ValidateProfileData(p models.Profile) error {
+	now := time.Now()
+
+	if !p.DateOfBirth.IsZero() {
+		if p.DateOfBirth.After(now) {
+			return fmt.Errorf("date of birth is in the future")
+		}
+		age := now.Year() - p.DateOfBirth.Year()
+		if age > 130 {
+			return fmt.Errorf("age cannot exceed 130 years")
+		}
+	}
+
+	phoneRegex := regexp.MustCompile(`^[0-9+\-\(\) ]{7,20}$`)
+	if p.Phone != "" && !phoneRegex.MatchString(p.Phone) {
+		return fmt.Errorf("invalid phone format")
+	}
+
+	if len(p.Country) > 100 {
+		return fmt.Errorf("invalid country")
+	}
+
+	if p.Age < 0 || p.Age > 120 {
+		return fmt.Errorf("invalid age")
+	}
+
+	if len(p.Language) > 50 {
+		return fmt.Errorf("invalid language")
+	}
+
+	return nil
+}
+
+func ValidateUserData(u models.User) error {
+	if err := validateName(u.Name); err != nil {
+		return err
+	}
+
+	if u.Password != "" {
+		if err := validatePassword(u.Password); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (u *Usecase) IsEditedProfileData(newProfile models.Profile, oldProfile *models.Profile) bool {
+	profileChanged := false
+
 	if newProfile.Sex != "" && newProfile.Sex != oldProfile.Sex {
 		oldProfile.Sex = newProfile.Sex
 		profileChanged = true
@@ -55,7 +149,8 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 		profileChanged = true
 	}
 	if newProfile.Description != "" && newProfile.Description != oldProfile.Description {
-		oldProfile.Description = newProfile.Description
+		cleanDescription := u.sanitizer.Sanitize(newProfile.Description)
+		oldProfile.Description = cleanDescription
 		profileChanged = true
 	}
 	if newProfile.Language != "" && newProfile.Language != oldProfile.Language {
@@ -63,7 +158,12 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 		profileChanged = true
 	}
 
-	// === USER ===
+	return profileChanged
+}
+
+func (u *Usecase) IsEditedUserData(newUser models.User, oldUser *models.User) (bool, error) {
+	userChanged := false
+
 	if newUser.Name != "" && newUser.Name != oldUser.Name {
 		oldUser.Name = newUser.Name
 		userChanged = true
@@ -72,36 +172,55 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 		oldUser.Avatar = newUser.Avatar
 		userChanged = true
 	}
-	if newUser.Password != "" && newUser.Password != oldUser.Password {
+	if newUser.Password != "" {
 		hashed, err := security.HashPassword(newUser.Password)
 		if err != nil {
-			return models.Profile{}, models.User{}, u.handleError(err)
+			return false, err
 		}
 		hashedStr := fmt.Sprintf("%x", hashed)
 		oldUser.Password = hashedStr
 		userChanged = true
 	}
 
-	var updatedProfile models.Profile
-	var updatedUser models.User
+	return userChanged, nil
+}
 
-	if profileChanged {
-		updatedProfile, err = u.profileRepo.UpdateProfile(ctx, oldProfile)
-		if err != nil {
-			return models.Profile{}, models.User{}, u.handleError(err)
-		}
-	} else {
-		updatedProfile = oldProfile
+func validatePassword(password string) error {
+	if password == "" {
+		return InvalidPassword
 	}
 
-	if userChanged {
-		updatedUser, err = u.userRepo.UpdateUser(ctx, oldUser)
-		if err != nil {
-			return models.Profile{}, models.User{}, u.handleError(err)
-		}
-	} else {
-		updatedUser = oldUser
+	if utf8.RuneCountInString(password) < 4 {
+		return InvalidPassword
 	}
 
-	return updatedProfile, updatedUser, nil
+	if strings.Contains(password, " ") {
+		return InvalidPassword
+	}
+
+	if utf8.RuneCountInString(password) > 64 {
+		return InvalidPassword
+	}
+
+	return nil
+}
+
+func validateName(name string) error {
+	if name == "" {
+		return InvalidName
+	}
+
+	if strings.Contains(name, " ") {
+		return InvalidName
+	}
+
+	if utf8.RuneCountInString(name) < 4 {
+		return InvalidName
+	}
+
+	if utf8.RuneCountInString(name) > 32 {
+		return InvalidName
+	}
+
+	return nil
 }

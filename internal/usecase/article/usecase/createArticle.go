@@ -39,7 +39,10 @@ func (u *Usecase) CreateArticle(
 		}
 	}
 
-	created, err := u.articleRepo.CreateArticle(ctx, authorID, title, content, topicID)
+	cleanTitle := u.sanitizer.Sanitize(title)
+	cleanContent := u.sanitizer.Sanitize(content)
+
+	created, err := u.articleRepo.CreateArticle(ctx, authorID, cleanTitle, cleanContent, topicID)
 	if err != nil {
 		logger.Error(ctx, err.Error())
 		if mediaURL != "" {

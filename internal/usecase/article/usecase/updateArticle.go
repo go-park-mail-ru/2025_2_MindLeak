@@ -37,15 +37,18 @@ func (u *Usecase) UpdateArticle(
 		return models.Article{}, u.handleError(fmt.Errorf("not article owner"))
 	}
 
+	cleanTitle := u.sanitizer.Sanitize(*title)
+	cleanContent := u.sanitizer.Sanitize(*content)
+
 	changed := false
 	oldMediaURL := old.MediaURL
 
-	if title != nil && *title != old.Title {
-		old.Title = *title
+	if title != nil && cleanTitle != old.Title {
+		old.Title = cleanTitle
 		changed = true
 	}
-	if content != nil && *content != old.Content {
-		old.Content = *content
+	if content != nil && cleanContent != old.Content {
+		old.Content = cleanContent
 		changed = true
 	}
 	if status != nil && *status != old.Status {

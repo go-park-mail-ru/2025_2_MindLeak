@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 	repoUser "github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 var (
@@ -33,14 +34,17 @@ type Usecase struct {
 	userRepo    user.UserRepository
 	profileRepo profile.ProfileRepository
 	minioClient *minio_client.Client
+	sanitizer   *bluemonday.Policy
 }
 
 func NewProfileUsecase(sessionRepo session.SessionRepository, userRepo user.UserRepository, profileRepo profile.ProfileRepository, minioClient *minio_client.Client) *Usecase {
+	sanitizer := bluemonday.UGCPolicy()
 	return &Usecase{
 		sessionRepo: sessionRepo,
 		userRepo:    userRepo,
 		profileRepo: profileRepo,
 		minioClient: minioClient,
+		sanitizer:   sanitizer,
 	}
 }
 

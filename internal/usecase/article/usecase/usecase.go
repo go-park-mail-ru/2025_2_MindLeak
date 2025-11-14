@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"github.com/microcosm-cc/bluemonday"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
@@ -18,13 +19,16 @@ type Usecase struct {
 	articleRepo article.ArticleRepository
 	sessionRepo session.SessionRepository
 	minioClient *minio_client.Client
+	sanitizer   *bluemonday.Policy
 }
 
 func NewArticleUsecase(articleRepo article.ArticleRepository, sessionRepo session.SessionRepository, minioClient *minio_client.Client) *Usecase {
+	sanitizer := bluemonday.UGCPolicy()
 	return &Usecase{
 		articleRepo: articleRepo,
 		sessionRepo: sessionRepo,
 		minioClient: minioClient,
+		sanitizer:   sanitizer,
 	}
 }
 
