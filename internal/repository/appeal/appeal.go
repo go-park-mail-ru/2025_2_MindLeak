@@ -110,6 +110,22 @@ SELECT category_id, name
 FROM appeal_category
 ORDER BY category_id
 `
+	GetAppealStatsTotalQuery = `
+SELECT COUNT(*) FROM appeal;
+`
+
+	GetAppealStatsByCategoryQuery = `
+SELECT c.name, COUNT(*)
+FROM appeal a
+JOIN appeal_category c ON a.category_id = c.category_id
+GROUP BY c.name;
+`
+
+	GetAppealStatsByStatusQuery = `
+SELECT status, COUNT(*)
+FROM appeal
+GROUP BY status;
+`
 )
 
 type AppealRepository interface {
@@ -119,6 +135,7 @@ type AppealRepository interface {
 	GetMyAppeal(ctx context.Context, appealID uuid.UUID) (models.Appeal, error)
 	UpdateAppeal(ctx context.Context, appeal models.Appeal) (models.Appeal, error)
 	GetAllCategories(ctx context.Context) ([]models.AppealCategory, error)
+	GetStats(ctx context.Context) (AppealStatsRaw, error)
 }
 
 type PostgresAppeal struct {
@@ -329,4 +346,61 @@ func (p *PostgresAppeal) GetAllCategories(ctx context.Context) ([]models.AppealC
 	}
 
 	return categories, nil
+}
+
+type AppealStatsRaw struct {
+	Total      int64
+	ByCategory map[string]int64
+	ByStatus   map[string]int64
+}
+
+func (p *PostgresAppeal) GetStats(ctx context.Context) (AppealStatsRaw, error) {
+	stats := AppealStatsRaw{
+		ByCategory: make(map[string]int64),
+		ByStatus:   make(map[string]int64),
+	}
+
+	err := p.db.QueryRowContext(ctx, GetAppealStatsTotalQuery).Scan(&stats.Total)
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return stats, err
+	}
+
+	rows, err := p.db.QueryContext(ctx, GetAppealStatsByCategoryQuery)
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return stats, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var category string
+		var count int64
+		err := rows.Scan(&category, &count)
+		if err != nil {
+			logger.Error(ctx, err.Error())
+			return stats, err
+		}
+		stats.ByCategory[category] = count
+	}
+
+	rows, err = p.db.QueryContext(ctx, GetAppealStatsByStatusQuery)
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return stats, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var status string
+		var count int64
+		err := rows.Scan(&status, &count)
+		if err != nil {
+			logger.Error(ctx, err.Error())
+			return stats, err
+		}
+		stats.ByStatus[status] = count
+	}
+
+	return stats, nil
 }
