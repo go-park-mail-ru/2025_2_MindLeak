@@ -31,11 +31,23 @@ ON CONFLICT (name) DO NOTHING;
 -- +goose Down
 -- +goose StatementBegin
 
--- Удаляем только те топики, которые добавили этой миграцией
+-- Удаляем лайки
+DELETE FROM article_like
+WHERE article_id IN (SELECT article_id FROM article WHERE topic_id IN (0,1,2,3,4,5,6,7,8,9));
+
+-- Удаляем комментарии
+DELETE FROM comment
+WHERE article_id IN (SELECT article_id FROM article WHERE topic_id IN (0,1,2,3,4,5,6,7,8,9));
+
+-- Удаляем статьи
+DELETE FROM article
+WHERE topic_id IN (0,1,2,3,4,5,6,7,8,9);
+
+-- Теперь можно удалить топики
 DELETE FROM topic
 WHERE topic_id IN (0,1,2,3,4,5,6,7,8,9);
 
--- Удаляем только наши категории обращений
+-- Удаляем категории обращений
 DELETE FROM appeal_category
 WHERE name IN (
                'Баг или техническая проблема',
@@ -47,3 +59,4 @@ WHERE name IN (
     );
 
 -- +goose StatementEnd
+
