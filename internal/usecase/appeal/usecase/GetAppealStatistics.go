@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (u *Usecase) GetAppealStatistics(ctx context.Context, sessionID uuid.UUID) (dto.AppealsStatisticsDTO, error) {
+func (u *Usecase) GetAppealsStatistics(ctx context.Context, sessionID uuid.UUID) (dto.AppealsStatisticsDTO, error) {
 	_, err := u.sessionRepo.GetSessionById(ctx, sessionID)
 	if err != nil {
 		return dto.AppealsStatisticsDTO{}, err
