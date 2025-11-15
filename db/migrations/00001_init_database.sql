@@ -141,16 +141,35 @@ CREATE TRIGGER trg_appeal_updated_at
 
 -- +goose Down
 -- +goose StatementBegin
+
+-- 1. Удаляем триггеры, которые используют функцию update_updated_at()
+DROP TRIGGER IF EXISTS trg_user_updated_at ON "user";
+DROP TRIGGER IF EXISTS trg_profile_updated_at ON profile;
+DROP TRIGGER IF EXISTS trg_article_updated_at ON article;
+DROP TRIGGER IF EXISTS trg_comment_updated_at ON comment;
+DROP TRIGGER IF EXISTS trg_appeal_updated_at ON appeal;
+
+-- 2. Удаляем функцию
+DROP FUNCTION IF EXISTS update_updated_at();
+
+-- 3. Удаляем таблицы в правильном порядке (от зависимых → к базовым)
 DROP TABLE IF EXISTS media CASCADE;
-DROP TABLE IF EXISTS topic CASCADE;
 DROP TABLE IF EXISTS article_like CASCADE;
 DROP TABLE IF EXISTS comment CASCADE;
 DROP TABLE IF EXISTS article CASCADE;
+DROP TABLE IF EXISTS topic CASCADE;
 DROP TABLE IF EXISTS profile CASCADE;
 DROP TABLE IF EXISTS subscription CASCADE;
+DROP TABLE IF EXISTS appeal CASCADE;
+DROP TABLE IF EXISTS appeal_category CASCADE;
 DROP TABLE IF EXISTS "user" CASCADE;
+
+-- 4. Удаляем ENUM-типы
 DROP TYPE IF EXISTS media_type;
 DROP TYPE IF EXISTS article_status;
-DROP FUNCTION IF EXISTS update_updated_at();
+DROP TYPE IF EXISTS appeal_status;
+
+-- 5. Удаляем расширения
 DROP EXTENSION IF EXISTS "pgcrypto";
+
 -- +goose StatementEnd
