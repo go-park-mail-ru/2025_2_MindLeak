@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/cookies"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/appeal/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/google/uuid"
 )
 
@@ -30,6 +31,8 @@ func (h *Handler) CreateAppeal(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, code, msg)
 		return
 	}
+
+	logger.Warn(ctx, "CreateAppeal", input)
 
 	appeal, err := h.Usecase.CreateAppeal(ctx, sessionID, input)
 	if err != nil {
