@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/appeal"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
@@ -21,10 +22,11 @@ func NewRouter(
 	topBlogsHandler *topBlogs.Handler,
 	commentHandler *comment.Handler,
 	subsHandler *subscriptions.Handler,
+	appealHandler *appeal.Handler,
 ) *mux.Router {
 	router := mux.NewRouter()
 
-	// Мидлвари
+	// Мидлвары
 	router.Use(middleware.RecoverMiddleware)
 	router.Use(middleware.RequestIDMiddleware)
 	router.Use(middleware.CORSMiddleware)
@@ -76,6 +78,16 @@ func NewRouter(
 	router.HandleFunc("subscriptions", subsHandler.GetSubscriptions).Methods("GET")
 	router.HandleFunc("unsubscribe/{id}", subsHandler.Unsubscribe).Methods("POST")
 	router.HandleFunc("subscribe/{id}", subsHandler.Subscribe).Methods("POST")
+
+	//  Техподдержка (хакатон)
+	router.HandleFunc("/appeal", appealHandler.CreateAppeal).Methods("POST")
+	router.HandleFunc("/appeal/anonymous", appealHandler.CreateAnonymousAppeal).Methods("POST")
+	router.HandleFunc("/appeal", appealHandler.DeleteAppeal).Methods("DELETE")
+	router.HandleFunc("/appeal", appealHandler.GetAppealByID).Methods("GET")
+	router.HandleFunc("/uploads/screenshot", appealHandler.UploadScreenshot).Methods("POST")
+	// router.HandleFunc("/delete/screenshot", appealHandler.DeleteMedia).Methods("DELETE")
+	router.HandleFunc("/appeals", appealHandler.GetAppeals).Methods("GET")
+	router.HandleFunc("/appeals/statistics", appealHandler.GetAppealsStatistics).Methods("GET")
 
 	return router
 }
