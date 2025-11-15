@@ -77,5 +77,12 @@ func NewRouter(
 	router.HandleFunc("unsubscribe/{id}", subsHandler.Unsubscribe).Methods("POST")
 	router.HandleFunc("subscribe/{id}", subsHandler.Subscribe).Methods("POST")
 
+	//  Техподдержка (хакатон)
+	router.HandleFunc("/appeal", appealHandler.CreateAppeal).Methods("POST")
+	router.HandleFunc("/appeal", appealHandler.DeleteAppeal).Methods("DELETE")
+	router.HandleFunc("/appeal", appealHandler.GetAppealByID).Methods("GET")
+	router.HandleFunc("/appeals", appealHandler.GetAppeals).Methods("GET")
+	router.HandleFunc("/appeals/statistics", appealHandler.GetAppealsStatistics).Methods("GET")
+
 	return router
 }
