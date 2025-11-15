@@ -19,4 +19,5 @@ type Usecase interface {
 	GetAppealsStatistics(ctx context.Context, sessionID uuid.UUID) (dto.AppealsStatisticsDTO, error)
 	UploadScreenshot(ctx context.Context, sessionID uuid.UUID, appealID uuid.UUID, file multipart.File, header *multipart.FileHeader) (models.Appeal, error)
 	// DeleteMedia(ctx context.Context, appealID uuid.UUID) (models.Appeal, error)
+	GetCategories(ctx context.Context) ([]models.AppealCategory, error)
 }

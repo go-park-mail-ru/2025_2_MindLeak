@@ -30,3 +30,12 @@ type AppealOutputDto struct {
 	EmailForConnect    string    `json:"email_for_connection"`
 	ScreenshotURL      string    `json:"screenshot_url"`
 }
+
+type CategoryDto struct {
+	CategoryID uuid.UUID `json:"category_id"`
+	Name       string    `json:"name"`
+}
+
+type CategoryOutputDto struct {
+	Categories []CategoryDto `json:"categories"`
+}
