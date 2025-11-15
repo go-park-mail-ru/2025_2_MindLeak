@@ -14,9 +14,16 @@ CREATE TABLE "user" (
 
 CREATE TYPE appeal_status AS ENUM ('created', 'in_work', 'solved');
 
+CREATE TABLE appeal_category (
+                                 category_id SERIAL PRIMARY KEY,
+                                 name TEXT UNIQUE NOT NULL
+);
+
 CREATE TABLE appeal (
-                        creator_id UUID NOT NULL UNIQUE REFERENCES "user"(user_id) ON DELETE CASCADE,
+                        appeal_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        creator_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
                         email_registered TEXT NOT NULL,
+                        category_id INT NOT NULL REFERENCES appeal_category(category_id),
                         status appeal_status NOT NULL DEFAULT 'created',
                         problem_description TEXT NOT NULL,
                         name TEXT NOT NULL,
@@ -125,6 +132,11 @@ CREATE TRIGGER trg_article_updated_at
 CREATE TRIGGER trg_comment_updated_at
     BEFORE UPDATE ON comment
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER trg_appeal_updated_at
+    BEFORE UPDATE ON appeal
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
 -- +goose StatementEnd
 
 -- +goose Down
