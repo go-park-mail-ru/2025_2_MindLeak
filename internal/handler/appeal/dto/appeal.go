@@ -15,7 +15,7 @@ type AppealInputDto struct {
 	Status             Status `json:"status" default:"created"`
 	ProblemDescription string `json:"problem_description"`
 	Name               string `json:"name"`
-	CategoryID         int    `json:"category_id"`
+	CategoryID         string `json:"category_id"`
 	EmailForConnect    string `json:"email_for_connection"`
 	ScreenshotURL      string `json:"screenshot_url"`
 }
