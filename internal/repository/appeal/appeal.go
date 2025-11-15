@@ -92,18 +92,17 @@ WHERE a.appeal_id = $1
 
 	UpdateMyAppealQuery = `
 UPDATE appeal
-SET 
-    category_id = $2,
-    problem_description = $3,
-    name = $4,
-    email_for_connect = $5,
-    screenshot_url = $6,
+SET
+    status = COALESCE($2, status),
+    category_id = COALESCE($3, category_id),
     updated_at = NOW()
 WHERE appeal_id = $1
-RETURNING 
+RETURNING
     appeal_id, creator_id, email_registered, category_id, status,
     problem_description, name, email_for_connect, screenshot_url,
-    created_at, updated_at
+    created_at, updated_at,
+    (SELECT category_id FROM appeal_category WHERE appeal_category.category_id = COALESCE($3, category_id)) AS cat_id,
+    (SELECT name        FROM appeal_category WHERE appeal_category.category_id = COALESCE($3, category_id)) AS cat_name;
 `
 	GetAllCategoriesQuery = `
 SELECT category_id, name
@@ -298,11 +297,8 @@ func (p *PostgresAppeal) UpdateAppeal(ctx context.Context, appeal models.Appeal)
 	err := p.db.QueryRowContext(ctx,
 		UpdateMyAppealQuery,
 		appeal.AppealID,
+		appeal.Status,
 		appeal.CategoryID,
-		appeal.ProblemDescription,
-		appeal.Name,
-		appeal.EmailForConnect,
-		appeal.ScreenshotURL,
 	).Scan(
 		&updated.AppealID,
 		&updated.CreatorID,
@@ -315,6 +311,9 @@ func (p *PostgresAppeal) UpdateAppeal(ctx context.Context, appeal models.Appeal)
 		&updated.ScreenshotURL,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
+
+		&updated.Category.CategoryID,
+		&updated.Category.Name,
 	)
 
 	if err != nil {
