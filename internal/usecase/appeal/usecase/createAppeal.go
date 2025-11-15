@@ -20,7 +20,7 @@ func (u *Usecase) CreateAppeal(ctx context.Context, sessionID uuid.UUID, appealD
 	authorID := session.UserId
 
 	appeal := models.Appeal{
-		AppealID:           uuid.New(),
+		//AppealID:           uuid.New(),
 		CreatorID:          authorID,
 		EmailRegistered:    appealDTO.EmailRegistered,
 		Status:             models.Status(appealDTO.Status),

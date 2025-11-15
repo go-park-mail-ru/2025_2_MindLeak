@@ -16,13 +16,13 @@ INSERT INTO topic (topic_id, title) VALUES
 ON CONFLICT (topic_id) DO NOTHING;
 
 -- Наполнение таблицы appeal_category
-INSERT INTO appeal_category (name) VALUES
-                                       ('Баг или техническая проблема'),
-                                       ('Проблема с аккаунтом/авторизацией'),
-                                       ('Предложение по функционалу'),
-                                       ('Вопрос по использованию сервиса'),
-                                       ('Жалоба или обратная связь'),
-                                       ('Другое')
+INSERT INTO appeal_category (category_id, name) VALUES
+                                       (1,'Баг или техническая проблема'),
+                                       (2,'Проблема с аккаунтом/авторизацией'),
+                                       (3,'Предложение по функционалу'),
+                                       (4,'Вопрос по использованию сервиса'),
+                                       (5,'Жалоба или обратная связь'),
+                                       (6,'Другое')
 ON CONFLICT (name) DO NOTHING;
 
 -- +goose StatementEnd
