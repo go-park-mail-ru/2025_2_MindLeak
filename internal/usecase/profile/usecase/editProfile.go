@@ -6,11 +6,8 @@ import (
 	"fmt"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/security"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/validation"
 	"github.com/google/uuid"
-	"regexp"
-	"strings"
-	"time"
-	"unicode/utf8"
 )
 
 var (
@@ -36,11 +33,11 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 		return models.Profile{}, models.User{}, u.handleError(err)
 	}
 
-	if err := u.ValidateProfileData(newProfile); err != nil {
+	if err := validation.ValidateProfileData(newProfile); err != nil {
 		return models.Profile{}, models.User{}, u.handleError(err)
 	}
 
-	if err := ValidateUserData(newUser); err != nil {
+	if err := validation.ValidateUserData(newUser); err != nil {
 		return models.Profile{}, models.User{}, u.handleError(err)
 	}
 
@@ -72,53 +69,6 @@ func (u *Usecase) EditProfile(ctx context.Context, sessionID uuid.UUID, newProfi
 	}
 
 	return updatedProfile, updatedUser, nil
-}
-
-func (u *Usecase) ValidateProfileData(p models.Profile) error {
-	now := time.Now()
-
-	if !p.DateOfBirth.IsZero() {
-		if p.DateOfBirth.After(now) {
-			return fmt.Errorf("date of birth is in the future")
-		}
-		age := now.Year() - p.DateOfBirth.Year()
-		if age > 130 {
-			return fmt.Errorf("age cannot exceed 130 years")
-		}
-	}
-
-	phoneRegex := regexp.MustCompile(`^[0-9+\-\(\) ]{7,20}$`)
-	if p.Phone != "" && !phoneRegex.MatchString(p.Phone) {
-		return fmt.Errorf("invalid phone format")
-	}
-
-	if len(p.Country) > 100 {
-		return fmt.Errorf("invalid country")
-	}
-
-	if p.Age < 0 || p.Age > 120 {
-		return fmt.Errorf("invalid age")
-	}
-
-	if len(p.Language) > 50 {
-		return fmt.Errorf("invalid language")
-	}
-
-	return nil
-}
-
-func ValidateUserData(u models.User) error {
-	if err := validateName(u.Name); err != nil {
-		return err
-	}
-
-	if u.Password != "" {
-		if err := validatePassword(u.Password); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (u *Usecase) IsEditedProfileData(newProfile models.Profile, oldProfile *models.Profile) bool {
@@ -183,44 +133,4 @@ func (u *Usecase) IsEditedUserData(newUser models.User, oldUser *models.User) (b
 	}
 
 	return userChanged, nil
-}
-
-func validatePassword(password string) error {
-	if password == "" {
-		return InvalidPassword
-	}
-
-	if utf8.RuneCountInString(password) < 4 {
-		return InvalidPassword
-	}
-
-	if strings.Contains(password, " ") {
-		return InvalidPassword
-	}
-
-	if utf8.RuneCountInString(password) > 64 {
-		return InvalidPassword
-	}
-
-	return nil
-}
-
-func validateName(name string) error {
-	if name == "" {
-		return InvalidName
-	}
-
-	if strings.Contains(name, " ") {
-		return InvalidName
-	}
-
-	if utf8.RuneCountInString(name) < 4 {
-		return InvalidName
-	}
-
-	if utf8.RuneCountInString(name) > 32 {
-		return InvalidName
-	}
-
-	return nil
 }

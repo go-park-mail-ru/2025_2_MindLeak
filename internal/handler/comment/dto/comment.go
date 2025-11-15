@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type CommentIODto struct { // Comment Input/Output DTO
+type CommentIODto struct {
 	Id        uuid.UUID  `json:"id"`
 	ArticleId uuid.UUID  `json:"article_id"`
 	UserId    uuid.UUID  `json:"user_id"`

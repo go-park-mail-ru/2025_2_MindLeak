@@ -116,6 +116,7 @@ CREATE TRIGGER trg_comment_updated_at
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE IF EXISTS media CASCADE;
+DROP TABLE IF EXISTS topic CASCADE;
 DROP TABLE IF EXISTS article_like CASCADE;
 DROP TABLE IF EXISTS comment CASCADE;
 DROP TABLE IF EXISTS article CASCADE;

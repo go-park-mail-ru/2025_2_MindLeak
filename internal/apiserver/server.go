@@ -20,14 +20,16 @@ import (
 	categoryUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/categories/usecase"
 	commentUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/comment/usecase"
 	profileUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/profile/usecase"
-	subsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/topBlogs/usecase"
+	subsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/subscriptions/usecase"
+	topBlogsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/topBlogs/usecase"
 
 	articleHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
 	authHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
 	categoryHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
 	commentHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/comment"
 	profileHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
-	subsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/topBlogs"
+	subsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/subscriptions"
+	topBlogsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/topBlogs"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
@@ -93,17 +95,27 @@ func New(config *server.Config) (*Server, error) {
 	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo, minioClient)
 	authUsecase := authUsecase.NewAuthUsecase(userRepo, sessionRepo, profileRepo)
 	categoryUsecase := categoryUsecase.NewCategoriesUsecase(articleRepo)
-	subsUsecase := subsUsecase.NewTopBlogsUsecase(subsRepo)
+	topBlogsUsecase := topBlogsUsecase.NewTopBlogsUsecase(subsRepo)
 	commentUsecase := commentUsecase.NewCommentUsecase(commentRepo, sessionRepo)
+	subsUsecase := subsUsecase.NewSubscriptionsUsecase(subsRepo, sessionRepo, userRepo)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)
 	authHandler := authHandler.NewAuthHandler(authUsecase)
 	profileHandler := profileHandler.NewProfileHandler(profileUsecase)
 	categoryHandler := categoryHandler.NewCategoriesHandler(categoryUsecase)
-	subsHandler := subsHandler.NewTopBlogsHandler(subsUsecase)
+	topBlogsHandler := topBlogsHandler.NewTopBlogsHandler(topBlogsUsecase)
 	commentHandler := commentHandler.NewCommentHandler(commentUsecase)
+	subsHandler := subsHandler.NewSubsHandler(subsUsecase)
 
-	mux := router.NewRouter(articleHandler, authHandler, profileHandler, categoryHandler, subsHandler, commentHandler)
+	mux := router.NewRouter(
+		articleHandler,
+		authHandler,
+		profileHandler,
+		categoryHandler,
+		topBlogsHandler,
+		commentHandler,
+		subsHandler,
+	)
 
 	handler := middleware.CORSMiddleware(mux)
 	handler = middleware.RecoverMiddleware(handler)

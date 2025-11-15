@@ -6,7 +6,7 @@ type TopBlogDto struct {
 	Id          uuid.UUID `json:"id"`
 	Name        string    `json:"name"`
 	Avatar      string    `json:"avatar"`
-	Subscribers int       `json:"subscribers"`
+	Subscribers int       `json:"subscriptions"`
 }
 
 type TopBlogsDto struct {
