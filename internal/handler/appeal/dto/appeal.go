@@ -1,0 +1,32 @@
+package dto
+
+import "github.com/google/uuid"
+
+type Status string
+
+const (
+	StatusSolved  Status = "solved"
+	StatusInWork  Status = "in_work"
+	StatusCreated Status = "created"
+)
+
+type AppealInputDto struct {
+	EmailRegistered    string    `json:"email_registered"`
+	Status             Status    `json:"status" default:"created"`
+	ProblemDescription string    `json:"problem_description"`
+	Name               string    `json:"name"`
+	CategoryID         uuid.UUID `json:"category_id"`
+	EmailForConnect    string    `json:"email_for_connection"`
+	ScreenshotURL      string    `json:"screenshot_url"`
+}
+
+type AppealOutputDto struct {
+	Id                 uuid.UUID `json:"appeal_id"`
+	EmailRegistered    string    `json:"email_registered"`
+	Status             Status    `json:"status" default:"created"`
+	ProblemDescription string    `json:"problem_description"`
+	Name               string    `json:"name"`
+	CategoryID         uuid.UUID `json:"category_id"`
+	EmailForConnect    string    `json:"email_for_connection"`
+	ScreenshotURL      string    `json:"screenshot_url"`
+}
