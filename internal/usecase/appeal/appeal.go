@@ -15,7 +15,7 @@ type Usecase interface {
 	CreateAnonymousAppeal(ctx context.Context, appealDTO dtoHand.AppealInputDto) (models.Appeal, error)
 	// DeleteAppeal(ctx context.Context, sessionID uuid.UUID, appealID uuid.UUID) (bool, error)
 	GetAppealByID(ctx context.Context, sessionID uuid.UUID, appealID uuid.UUID) (models.Appeal, error)
-	GetAppeals(ctx context.Context, sessionID uuid.UUID, authorID uuid.UUID) ([]models.Appeal, error)
+	GetAppeals(ctx context.Context, sessionID uuid.UUID) ([]models.Appeal, error)
 	GetAppealsStatistics(ctx context.Context, sessionID uuid.UUID) (dto.AppealsStatisticsDTO, error)
 	UploadScreenshot(ctx context.Context, sessionID uuid.UUID, appealID uuid.UUID, file multipart.File, header *multipart.FileHeader) (models.Appeal, error)
 	// DeleteMedia(ctx context.Context, appealID uuid.UUID) (models.Appeal, error)

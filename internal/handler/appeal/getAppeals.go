@@ -12,16 +12,16 @@ import (
 func (h *Handler) GetAppeals(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	authorIDStr := r.URL.Query().Get("author_id")
-	if authorIDStr == "" {
-		json.WriteError(w, http.StatusBadRequest, "missing author ID")
-		return
-	}
-	authorID, err := uuid.Parse(authorIDStr)
-	if err != nil {
-		json.WriteError(w, http.StatusBadRequest, "invalid author ID")
-		return
-	}
+	//authorIDStr := r.URL.Query().Get("author_id")
+	//if authorIDStr == "" {
+	//	json.WriteError(w, http.StatusBadRequest, "missing author ID")
+	//	return
+	//}
+	//authorID, err := uuid.Parse(authorIDStr)
+	//if err != nil {
+	//	json.WriteError(w, http.StatusBadRequest, "invalid author ID")
+	//	return
+	//}
 
 	cookie, err := cookies.GetCookie(r)
 	if err != nil {
@@ -37,7 +37,7 @@ func (h *Handler) GetAppeals(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	appeals, err := h.Usecase.GetAppeals(ctx, sessionID, authorID)
+	appeals, err := h.Usecase.GetAppeals(ctx, sessionID)
 	if err != nil {
 		code, msg := h.handleError(err)
 		json.WriteError(w, code, msg)
