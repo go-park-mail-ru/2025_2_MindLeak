@@ -15,7 +15,7 @@ CREATE TABLE "user" (
 CREATE TYPE appeal_status AS ENUM ('created', 'in_work', 'solved');
 
 CREATE TABLE appeal_category (
-                                 category_id SERIAL PRIMARY KEY,
+                                 category_id  INT PRIMARY KEY,
                                  name TEXT UNIQUE NOT NULL
 );
 
@@ -23,7 +23,7 @@ CREATE TABLE appeal (
                         appeal_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         creator_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
                         email_registered TEXT NOT NULL,
-                        category_id UUID NOT NULL REFERENCES appeal_category(category_id),
+                        category_id INT NOT NULL REFERENCES appeal_category(category_id),
                         status appeal_status NOT NULL DEFAULT 'created',
                         problem_description TEXT NOT NULL,
                         name TEXT NOT NULL,

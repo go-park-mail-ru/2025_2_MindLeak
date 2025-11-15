@@ -15,15 +15,15 @@ const (
 )
 
 type AppealCategory struct {
-	CategoryID uuid.UUID `db:"category_id"`
-	Name       string    `db:"name"`
+	CategoryID int    `db:"category_id"`
+	Name       string `db:"name"`
 }
 
 type Appeal struct {
 	AppealID           uuid.UUID `db:"appeal_id"`
 	CreatorID          uuid.UUID `db:"creator_id"`
 	EmailRegistered    string    `db:"email_registered"`
-	CategoryID         uuid.UUID `db:"category_id"`
+	CategoryID         int       `db:"category_id"`
 	Category           AppealCategory
 	Status             Status    `db:"status"`
 	ProblemDescription string    `db:"problem_description"`

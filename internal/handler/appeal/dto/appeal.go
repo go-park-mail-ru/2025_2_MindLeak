@@ -11,13 +11,13 @@ const (
 )
 
 type AppealInputDto struct {
-	EmailRegistered    string    `json:"email_registered"`
-	Status             Status    `json:"status" default:"created"`
-	ProblemDescription string    `json:"problem_description"`
-	Name               string    `json:"name"`
-	CategoryID         uuid.UUID `json:"category_id"`
-	EmailForConnect    string    `json:"email_for_connection"`
-	ScreenshotURL      string    `json:"screenshot_url"`
+	EmailRegistered    string `json:"email_registered"`
+	Status             Status `json:"status" default:"created"`
+	ProblemDescription string `json:"problem_description"`
+	Name               string `json:"name"`
+	CategoryID         int    `json:"category_id"`
+	EmailForConnect    string `json:"email_for_connection"`
+	ScreenshotURL      string `json:"screenshot_url"`
 }
 
 type AppealOutputDto struct {
@@ -26,14 +26,14 @@ type AppealOutputDto struct {
 	Status             Status    `json:"status" default:"created"`
 	ProblemDescription string    `json:"problem_description"`
 	Name               string    `json:"name"`
-	CategoryID         uuid.UUID `json:"category_id"`
+	CategoryID         int       `json:"category_id"`
 	EmailForConnect    string    `json:"email_for_connection"`
 	ScreenshotURL      string    `json:"screenshot_url"`
 }
 
 type CategoryDto struct {
-	CategoryID uuid.UUID `json:"category_id"`
-	Name       string    `json:"name"`
+	CategoryID int    `json:"category_id"`
+	Name       string `json:"name"`
 }
 
 type CategoryOutputDto struct {
