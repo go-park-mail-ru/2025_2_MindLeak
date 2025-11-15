@@ -23,7 +23,7 @@ CREATE TABLE appeal (
                         appeal_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                         creator_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
                         email_registered TEXT NOT NULL,
-                        category_id INT NOT NULL REFERENCES appeal_category(category_id),
+                        category_id UUID NOT NULL REFERENCES appeal_category(category_id),
                         status appeal_status NOT NULL DEFAULT 'created',
                         problem_description TEXT NOT NULL,
                         name TEXT NOT NULL,
