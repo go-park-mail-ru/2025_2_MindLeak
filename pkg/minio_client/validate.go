@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	maxAvatarSize = 5 * 1024 * 1024 // 5 MB
+	maxAvatarSize = 50 * 1024 * 1024 // 5 MB
 )
 
 var allowedPictureExt = map[string]bool{

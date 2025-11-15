@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (h *Handler) UploadAttachment(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) UploadScreenshot(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	cookie, err := cookies.GetCookie(r)
@@ -23,18 +23,15 @@ func (h *Handler) UploadAttachment(w http.ResponseWriter, r *http.Request) {
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
 		logger.Error(ctx, err.Error())
-		code, msg := h.handleError(err)
-		json.WriteError(w, code, msg)
+		json.WriteError(w, http.StatusUnauthorized, "invalid session")
 		return
 	}
 
-	//session, err := h.Usecase.GetSession(ctx, sessionID)
-	//if err != nil {
-	//	logger.Error(ctx, err.Error())
-	//	code, msg := h.handleError(err)
-	//	json.WriteError(w, code, msg)
-	//	return
-	//}
+	appealID, err := uuid.Parse(r.URL.Query().Get("appealId"))
+	if err != nil {
+		json.WriteError(w, http.StatusBadRequest, "invalid appeal id")
+		return
+	}
 
 	file, header, err := r.FormFile("file")
 	if err != nil {
@@ -44,12 +41,12 @@ func (h *Handler) UploadAttachment(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	appeal, err := h.Usecase.UploadAttachment(ctx, file, header)
+	appeal, err := h.Usecase.UploadScreenshot(ctx, sessionID, appealID, file, header)
 	if err != nil {
 		logger.Error(ctx, err.Error())
 		json.WriteError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	json.Write(w, http.StatusOK, user)
+	json.Write(w, http.StatusOK, appeal)
 }

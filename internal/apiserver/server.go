@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/minio"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/postgres"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/redis"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/appeal"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/comment"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/subscriptions"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/minio_client"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/session"
+	appealUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/appeal/usecase"
 	articleUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/article/usecase"
 	authUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/usecase"
 	categoryUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/categories/usecase"
@@ -23,6 +25,7 @@ import (
 	subsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/subscriptions/usecase"
 	topBlogsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/topBlogs/usecase"
 
+	appealHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/appeal"
 	articleHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
 	authHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
 	categoryHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
@@ -90,6 +93,7 @@ func New(config *server.Config) (*Server, error) {
 	profileRepo := profile.NewPostgresProfile(DB, minioClient)
 	subsRepo := subscriptions.NewPostgresSubscription(DB)
 	commentRepo := comment.NewPostgresComment(DB)
+	appealRepo := appeal.NewPostgresAppeal(DB)
 
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo, minioClient)
 	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo, minioClient)
@@ -98,6 +102,7 @@ func New(config *server.Config) (*Server, error) {
 	topBlogsUsecase := topBlogsUsecase.NewTopBlogsUsecase(subsRepo)
 	commentUsecase := commentUsecase.NewCommentUsecase(commentRepo, sessionRepo)
 	subsUsecase := subsUsecase.NewSubscriptionsUsecase(subsRepo, sessionRepo, userRepo)
+	appealUsecase := appealUsecase.NewAppealUsecase(appealRepo, sessionRepo, minioClient)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)
 	authHandler := authHandler.NewAuthHandler(authUsecase)
@@ -106,6 +111,7 @@ func New(config *server.Config) (*Server, error) {
 	topBlogsHandler := topBlogsHandler.NewTopBlogsHandler(topBlogsUsecase)
 	commentHandler := commentHandler.NewCommentHandler(commentUsecase)
 	subsHandler := subsHandler.NewSubsHandler(subsUsecase)
+	appealHandler := appealHandler.NewAppealHandler(appealUsecase)
 
 	mux := router.NewRouter(
 		articleHandler,
@@ -115,6 +121,7 @@ func New(config *server.Config) (*Server, error) {
 		topBlogsHandler,
 		commentHandler,
 		subsHandler,
+		appealHandler,
 	)
 
 	handler := middleware.CORSMiddleware(mux)

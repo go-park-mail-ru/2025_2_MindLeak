@@ -125,6 +125,17 @@ SELECT status, COUNT(*)
 FROM appeal
 GROUP BY status;
 `
+	UpdateAppealScreenshotQuery = `UPDATE appeal
+SET screenshot_url = $2,
+    updated_at = NOW()
+WHERE appeal_id = $1
+RETURNING 
+    appeal_id, creator_id, email_registered, category_id, status,
+    problem_description, name, email_for_connect, screenshot_url,
+    created_at, updated_at,
+    (SELECT category_id FROM appeal_category WHERE category_id = appeal.category_id) AS cat_id,
+    (SELECT name        FROM appeal_category WHERE category_id = appeal.category_id) AS cat_name;
+`
 )
 
 type AppealRepository interface {
@@ -135,6 +146,7 @@ type AppealRepository interface {
 	UpdateAppeal(ctx context.Context, appeal models.Appeal) (models.Appeal, error)
 	GetAllCategories(ctx context.Context) ([]models.AppealCategory, error)
 	GetStats(ctx context.Context) (AppealStatsRaw, error)
+	UpdateAppealScreenshot(ctx context.Context, appealID uuid.UUID, screenshotURL string) (models.Appeal, error)
 }
 
 type PostgresAppeal struct {
@@ -402,4 +414,35 @@ func (p *PostgresAppeal) GetStats(ctx context.Context) (AppealStatsRaw, error) {
 	}
 
 	return stats, nil
+}
+
+func (p *PostgresAppeal) UpdateAppealScreenshot(ctx context.Context, appealID uuid.UUID, url string) (models.Appeal, error) {
+	var updated models.Appeal
+
+	err := p.db.QueryRowContext(ctx,
+		UpdateAppealScreenshotQuery,
+		appealID,
+		url,
+	).Scan(
+		&updated.AppealID,
+		&updated.CreatorID,
+		&updated.EmailRegistered,
+		&updated.CategoryID,
+		&updated.Status,
+		&updated.ProblemDescription,
+		&updated.Name,
+		&updated.EmailForConnect,
+		&updated.ScreenshotURL,
+		&updated.CreatedAt,
+		&updated.UpdatedAt,
+		&updated.Category.CategoryID,
+		&updated.Category.Name,
+	)
+
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return models.Appeal{}, err
+	}
+
+	return updated, nil
 }
