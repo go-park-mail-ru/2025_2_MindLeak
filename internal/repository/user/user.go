@@ -27,7 +27,7 @@ const (
 	GetUserByIdQuery = `
 		SELECT 
 			u.user_id, u.email, u.password, u.name, u.avatar,
-			COUNT(DISTINCT s_followers.follower_id) AS subscriptions,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
 			COUNT(DISTINCT s_following.followed_id) AS subscriptions
 		FROM "user" u
 		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
@@ -38,7 +38,7 @@ const (
 	GetUserByEmailQuery = `
 		SELECT 
 			u.user_id, u.email, u.password, u.name, u.avatar,
-			COUNT(DISTINCT s_followers.follower_id) AS subscriptions,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
 			COUNT(DISTINCT s_following.followed_id) AS subscriptions
 		FROM "user" u
 		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
@@ -49,7 +49,7 @@ const (
 	GetAllUsersQuery = `
 		SELECT 
 			u.user_id, u.email, u.password, u.name, u.avatar,
-			COUNT(DISTINCT s_followers.follower_id) AS subscriptions,
+			COUNT(DISTINCT s_followers.follower_id) AS subscribers,
 			COUNT(DISTINCT s_following.followed_id) AS subscriptions
 		FROM "user" u
 		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
@@ -66,7 +66,7 @@ const (
 			updated_at = NOW()
 		WHERE user_id = $1
 		RETURNING user_id, email, password, name, avatar,
-			(SELECT COUNT(*) FROM subscription WHERE followed_id = $1) AS subscriptions,
+			(SELECT COUNT(*) FROM subscription WHERE followed_id = $1) AS subscribers,
 			(SELECT COUNT(*) FROM subscription WHERE follower_id = $1) AS subscriptions;
 	`
 )

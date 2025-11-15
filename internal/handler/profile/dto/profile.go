@@ -36,7 +36,7 @@ type ProfileOutputDto struct {
 	AvatarURL     string    `json:"avatar_url"`
 	Email         string    `json:"email"`
 	Password      string    `json:"password"`
-	Subscribers   int       `json:"subscriptions"`
+	Subscribers   int       `json:"subscribers"`
 	Subscriptions int       `json:"subscriptions"`
 	Id            uuid.UUID `json:"id"`
 }

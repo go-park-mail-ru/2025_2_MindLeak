@@ -9,6 +9,6 @@ type User struct {
 	Name     string    `db:"name"`
 	Avatar   string    `db:"avatar"`
 
-	Subscribers   int `db:"subscriptions"`
+	Subscribers   int `db:"subscribers"`
 	Subscriptions int `db:"subscriptions"`
 }
