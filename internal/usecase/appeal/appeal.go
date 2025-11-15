@@ -11,10 +11,11 @@ import (
 
 type Usecase interface {
 	CreateAppeal(ctx context.Context, sessionID uuid.UUID, appealDTO dto.AppealDTO) (models.Appeal, error)
+	CreateAnonymousAppeal(ctx context.Context, appealDTO dto.AppealDTO) (models.Appeal, error)
 	DeleteAppeal(ctx context.Context, sessionID uuid.UUID, appealID uuid.UUID) (bool, error)
-	GetAppealByID(ctx context.Context, appealID uuid.UUID) (models.Appeal, error)
+	GetAppealByID(ctx context.Context, sessionID uuid.UUID, appealID uuid.UUID) (models.Appeal, error)
 	GetAppeals(ctx context.Context, sessionID uuid.UUID, authorID uuid.UUID) ([]models.Appeal, error)
 	GetAppealsStatistics(ctx context.Context, sessionID uuid.UUID) (dto.AppealsStatisticsDTO, error)
-	UploadMedia(ctx context.Context, appealID uuid.UUID, file multipart.File, header *multipart.FileHeader) (models.Appeal, error)
+	UploadScreenshot(ctx context.Context, appealID uuid.UUID, file multipart.File, header *multipart.FileHeader) (models.Appeal, error)
 	DeleteMedia(ctx context.Context, appealID uuid.UUID) (models.Appeal, error)
 }

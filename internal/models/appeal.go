@@ -24,10 +24,7 @@ type Appeal struct {
 	CreatorID          uuid.UUID `db:"creator_id"`
 	EmailRegistered    string    `db:"email_registered"`
 	CategoryID         uuid.UUID `db:"category_id"`
-<<<<<<< HEAD
-=======
 	Category           AppealCategory
->>>>>>> 61b5f755d6a7c08963173028677fed4146ac3e1a
 	Status             Status    `db:"status"`
 	ProblemDescription string    `db:"problem_description"`
 	Name               string    `db:"name"`

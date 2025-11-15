@@ -29,6 +29,7 @@ func (h *Handler) GetAppeals(w http.ResponseWriter, r *http.Request) {
 		json.WriteError(w, code, msg)
 		return
 	}
+
 	sessionID, err := uuid.Parse(cookie.Value)
 	if err != nil {
 		code, msg := h.handleError(err)
