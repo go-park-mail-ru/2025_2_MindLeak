@@ -12,6 +12,20 @@ CREATE TABLE "user" (
                         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TYPE appeal_status AS ENUM ('created', 'in_work', 'solved');
+
+CREATE TABLE appeal (
+                        creator_id UUID NOT NULL UNIQUE REFERENCES "user"(user_id) ON DELETE CASCADE,
+                        email_registered TEXT NOT NULL,
+                        status appeal_status NOT NULL DEFAULT 'created',
+                        problem_description TEXT NOT NULL,
+                        name TEXT NOT NULL,
+                        email_for_connect TEXT NOT NULL,
+                        screenshot_url TEXT NOT NULL,
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE profile (
                          profile_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          user_id UUID NOT NULL UNIQUE REFERENCES "user"(user_id) ON DELETE CASCADE,
