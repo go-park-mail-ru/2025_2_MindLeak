@@ -84,7 +84,7 @@ func NewRouter(
 	router.HandleFunc("/appeal/anonymous", appealHandler.CreateAnonymousAppeal).Methods("POST")
 	router.HandleFunc("/appeal", appealHandler.DeleteAppeal).Methods("DELETE")
 	router.HandleFunc("/appeal", appealHandler.GetAppealByID).Methods("GET")
-	router.HandleFunc("/uploads/screenshot", appealHandler.UploadScreenshot).Methods("POST")
+	router.HandleFunc("/appeals/uploads/", appealHandler.UploadScreenshot).Methods("POST")
 	// router.HandleFunc("/delete/screenshot", appealHandler.DeleteMedia).Methods("DELETE")
 	router.HandleFunc("/appeals", appealHandler.GetAppeals).Methods("GET")
 	router.HandleFunc("/appeals/statistics", appealHandler.GetAppealsStatistics).Methods("GET")
