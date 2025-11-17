@@ -12,27 +12,6 @@ CREATE TABLE "user" (
                         updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TYPE appeal_status AS ENUM ('created', 'in_work', 'solved');
-
-CREATE TABLE appeal_category (
-                                 category_id  INT PRIMARY KEY,
-                                 name TEXT UNIQUE NOT NULL
-);
-
-CREATE TABLE appeal (
-                        appeal_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                        creator_id UUID NOT NULL REFERENCES "user"(user_id) ON DELETE CASCADE,
-                        email_registered TEXT NOT NULL,
-                        category_id INT NOT NULL REFERENCES appeal_category(category_id),
-                        status appeal_status NOT NULL DEFAULT 'created',
-                        problem_description TEXT NOT NULL,
-                        name TEXT NOT NULL,
-                        email_for_connect TEXT NOT NULL,
-                        screenshot_url TEXT NOT NULL,
-                        created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
 CREATE TABLE profile (
                          profile_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                          user_id UUID NOT NULL UNIQUE REFERENCES "user"(user_id) ON DELETE CASCADE,
@@ -132,44 +111,36 @@ CREATE TRIGGER trg_article_updated_at
 CREATE TRIGGER trg_comment_updated_at
     BEFORE UPDATE ON comment
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
-CREATE TRIGGER trg_appeal_updated_at
-    BEFORE UPDATE ON appeal
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 
--- 1. Удаляем триггеры, которые используют функцию update_updated_at()
-DROP TRIGGER IF EXISTS trg_user_updated_at ON "user";
-DROP TRIGGER IF EXISTS trg_profile_updated_at ON profile;
-DROP TRIGGER IF EXISTS trg_article_updated_at ON article;
-DROP TRIGGER IF EXISTS trg_comment_updated_at ON comment;
-DROP TRIGGER IF EXISTS trg_appeal_updated_at ON appeal;
+-- Удаляем триггеры с CASCADE
+DROP TRIGGER IF EXISTS trg_user_updated_at ON "user" CASCADE;
+DROP TRIGGER IF EXISTS trg_profile_updated_at ON profile CASCADE;
+DROP TRIGGER IF EXISTS trg_article_updated_at ON article CASCADE;
+DROP TRIGGER IF EXISTS trg_comment_updated_at ON comment CASCADE;
 
--- 2. Удаляем функцию
-DROP FUNCTION IF EXISTS update_updated_at();
-
--- 3. Удаляем таблицы в правильном порядке (от зависимых → к базовым)
+-- Теперь можно удалить таблицы
 DROP TABLE IF EXISTS media CASCADE;
+DROP TABLE IF EXISTS topic CASCADE;
 DROP TABLE IF EXISTS article_like CASCADE;
 DROP TABLE IF EXISTS comment CASCADE;
 DROP TABLE IF EXISTS article CASCADE;
-DROP TABLE IF EXISTS topic CASCADE;
 DROP TABLE IF EXISTS profile CASCADE;
 DROP TABLE IF EXISTS subscription CASCADE;
-DROP TABLE IF EXISTS appeal CASCADE;
-DROP TABLE IF EXISTS appeal_category CASCADE;
 DROP TABLE IF EXISTS "user" CASCADE;
 
--- 4. Удаляем ENUM-типы
+-- Удаляем типы
 DROP TYPE IF EXISTS media_type;
 DROP TYPE IF EXISTS article_status;
-DROP TYPE IF EXISTS appeal_status;
 
--- 5. Удаляем расширения
+-- Удаляем функцию
+DROP FUNCTION IF EXISTS update_updated_at CASCADE;
+
+-- Удаляем расширение
 DROP EXTENSION IF EXISTS "pgcrypto";
 
 -- +goose StatementEnd
+

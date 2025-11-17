@@ -17,12 +17,12 @@ ON CONFLICT (topic_id) DO NOTHING;
 
 -- Наполнение таблицы appeal_category
 INSERT INTO appeal_category (category_id, name) VALUES
-                                       (1,'Баг или техническая проблема'),
-                                       (2,'Проблема с аккаунтом/авторизацией'),
-                                       (3,'Предложение по функционалу'),
-                                       (4,'Вопрос по использованию сервиса'),
-                                       (5,'Жалоба или обратная связь'),
-                                       (6,'Другое')
+                                                    (1,'Баг или техническая проблема'),
+                                                    (2,'Проблема с аккаунтом/авторизацией'),
+                                                    (3,'Предложение по функционалу'),
+                                                    (4,'Вопрос по использованию сервиса'),
+                                                    (5,'Жалоба или обратная связь'),
+                                                    (6,'Другое')
 ON CONFLICT (name) DO NOTHING;
 
 -- +goose StatementEnd
@@ -30,6 +30,19 @@ ON CONFLICT (name) DO NOTHING;
 
 -- +goose Down
 -- +goose StatementBegin
+
+-- Удаляем записи из appeal, которые ссылаются на удаляемые категории
+DELETE FROM appeal
+WHERE category_id IN (
+    SELECT category_id FROM appeal_category WHERE name IN (
+                                                           'Баг или техническая проблема',
+                                                           'Проблема с аккаунтом/авторизацией',
+                                                           'Предложение по функционалу',
+                                                           'Вопрос по использованию сервиса',
+                                                           'Жалоба или обратная связь',
+                                                           'Другое'
+        )
+);
 
 -- Удаляем лайки
 DELETE FROM article_like
@@ -59,4 +72,3 @@ WHERE name IN (
     );
 
 -- +goose StatementEnd
-
