@@ -30,8 +30,7 @@ func NewRouter(
 	router.Use(middleware.RecoverMiddleware)
 	router.Use(middleware.RequestIDMiddleware)
 	router.Use(middleware.CORSMiddleware)
-	//router.Use(middleware.CSRFMiddleware)
-	//router.Use(middleware.AuthMiddleware) Потом подключить к нужным ручкам
+	router.Use(middleware.CSRFMiddleware)
 
 	// Авторизация
 	router.HandleFunc("/feed", articleHandler.Feed).Methods("GET")
