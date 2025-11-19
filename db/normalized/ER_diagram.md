@@ -1,0 +1,91 @@
+```mermaid
+erDiagram
+    USER ||--o{ USER_PROFILE : has
+    USER ||--o{ ARTICLE : writes
+    USER ||--o{ COMMENT : posts
+    USER ||--o{ ARTICLE_LIKE : likes
+    USER ||--o{ COMMENT_LIKE : likes
+    USER ||--o{ NOTIFICATION : receives
+    ARTICLE ||--o{ COMMENT : has
+    ARTICLE ||--o{ ARTICLE_CATEGORY : belongs
+    ARTICLE ||--o{ ARTICLE_TAG : has
+    ARTICLE ||--o{ ARTICLE_LIKE : has
+    CATEGORY ||--o{ ARTICLE_CATEGORY : contains
+    TAG ||--o{ ARTICLE_TAG : tags
+    COMMENT ||--o{ COMMENT_LIKE : has
+
+    USER {
+        UUID USER_ID PK
+        TEXT LOGIN UK
+        TEXT PASSWORD_HASH
+        TEXT EMAIL UK
+        TIMESTAMPTZ CREATED_AT
+        TIMESTAMPTZ UPDATED_AT
+    }
+    USER_PROFILE {
+        UUID USER_ID PK,FK
+        TEXT DISPLAY_NAME
+        TEXT BIO
+        TEXT AVATAR_URL
+        TIMESTAMPTZ CREATED_AT
+        TIMESTAMPTZ UPDATED_AT
+    }
+    ARTICLE {
+        UUID ARTICLE_ID PK
+        TEXT TITLE
+        TEXT CONTENT
+        UUID AUTHOR_ID FK
+        TIMESTAMPTZ PUBLISHED_AT
+        TEXT STATUS
+        TIMESTAMPTZ CREATED_AT
+        TIMESTAMPTZ UPDATED_AT
+    }
+    CATEGORY {
+        UUID CATEGORY_ID PK
+        TEXT NAME UK
+        TEXT DESCRIPTION
+        TIMESTAMPTZ CREATED_AT
+        TIMESTAMPTZ UPDATED_AT
+    }
+    TAG {
+        UUID TAG_ID PK
+        TEXT NAME UK
+        TIMESTAMPTZ CREATED_AT
+    }
+    COMMENT {
+        UUID COMMENT_ID PK
+        UUID ARTICLE_ID FK
+        UUID USER_ID FK
+        TEXT CONTENT
+        TIMESTAMPTZ CREATED_AT
+        TIMESTAMPTZ UPDATED_AT
+    }
+    ARTICLE_CATEGORY {
+        UUID ARTICLE_ID PK,FK
+        UUID CATEGORY_ID PK,FK
+        TIMESTAMPTZ CREATED_AT
+    }
+    ARTICLE_TAG {
+        UUID ARTICLE_ID PK,FK
+        UUID TAG_ID PK,FK
+        TIMESTAMPTZ CREATED_AT
+    }
+    ARTICLE_LIKE {
+        UUID USER_ID PK,FK
+        UUID ARTICLE_ID PK,FK
+        TIMESTAMPTZ CREATED_AT
+    }
+    COMMENT_LIKE {
+        UUID USER_ID PK,FK
+        UUID COMMENT_ID PK,FK
+        TIMESTAMPTZ CREATED_AT
+    }
+    NOTIFICATION {
+        UUID NOTIFICATION_ID PK
+        UUID USER_ID FK
+        TEXT TYPE
+        TEXT CONTENT
+        BOOLEAN IS_READ
+        TIMESTAMPTZ CREATED_AT
+    }
+```

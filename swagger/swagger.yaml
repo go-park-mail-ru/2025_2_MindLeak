@@ -1,0 +1,147 @@
+openapi: 3.0.0
+info:
+  title: MindLeak API
+  version: "1.0"
+  description: Черновая документация API для фронтенда
+servers:
+  - url: http://localhost:8080
+paths:
+  /feed:
+    get:
+      summary: Получить ленту статей
+      tags: [Feed]
+      responses:
+        '200':
+          description: Список статей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+        '400':
+          description: Ошибка запроса
+        '500':
+          description: Внутренняя ошибка
+  /login:
+    post:
+      summary: Авторизация пользователя
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginInput'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Некорректный запрос
+        '401':
+          description: Неверный пароль
+        '404':
+          description: Пользователь не найден
+  /logout:
+    get:
+      summary: Выход из системы
+      tags: [Auth]
+      responses:
+        '200':
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Ошибка при удалении сессии
+  /me:
+    get:
+      summary: Проверка авторизации
+      tags: [Auth]
+      responses:
+        '200':
+          description: Данные текущего пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Пользователь не авторизован
+  /registration:
+    post:
+      summary: Регистрация нового пользователя
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterInput'
+      responses:
+        '201':
+          description: Пользователь успешно зарегистрирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Некорректный запрос
+        '409':
+          description: Пользователь уже существует
+
+components:
+  schemas:
+    UserLoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          example: test@example.com
+        password:
+          type: string
+          example: qwerty123
+    UserRegisterInput:
+      type: object
+      required: [email, password, name]
+      properties:
+        email:
+          type: string
+          example: newuser@mail.com
+        password:
+          type: string
+          example: secret123
+        name:
+          type: string
+          example: Ivan
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        name:
+          type: string
+    Article:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        authorId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        content:
+          type: string
