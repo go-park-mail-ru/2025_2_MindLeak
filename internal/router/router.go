@@ -92,8 +92,8 @@ func NewRouter(
 	router.HandleFunc("appeals/categories", appealHandler.GetCategory).Methods("GET")
 
 	// Поиск
-	router.HandleFunc("/postsearch", seacrhBarHandler.SearchArticles).Methods("GET")
-	router.HandleFunc("/blogsearch", seacrhBarHandler.SearchUsers).Methods("GET")
+	router.HandleFunc("/postssearch", seacrhBarHandler.SearchArticles).Methods("GET")
+	router.HandleFunc("/blogssearch", seacrhBarHandler.SearchUsers).Methods("GET")
 
 	return router
 }
