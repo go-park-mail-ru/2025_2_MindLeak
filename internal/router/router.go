@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/comment"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/search_bar"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/subscriptions"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/swagger"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/topBlogs"
@@ -23,6 +24,7 @@ func NewRouter(
 	commentHandler *comment.Handler,
 	subsHandler *subscriptions.Handler,
 	appealHandler *appeal.Handler,
+	seacrhBarHandler *search_bar.Handler,
 ) *mux.Router {
 	router := mux.NewRouter()
 
@@ -88,6 +90,10 @@ func NewRouter(
 	router.HandleFunc("/appeals", appealHandler.GetAppeals).Methods("GET")
 	router.HandleFunc("/appeals/statistics", appealHandler.GetAppealsStatistics).Methods("GET")
 	router.HandleFunc("appeals/categories", appealHandler.GetCategory).Methods("GET")
+
+	// Поиск
+	router.HandleFunc("/postsearch", seacrhBarHandler.SearchArticles).Methods("GET")
+	router.HandleFunc("/blogsearch", seacrhBarHandler.SearchUsers).Methods("GET")
 
 	return router
 }

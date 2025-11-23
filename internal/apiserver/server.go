@@ -22,6 +22,7 @@ import (
 	categoryUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/categories/usecase"
 	commentUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/comment/usecase"
 	profileUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/profile/usecase"
+	searchBarUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/search_bar/usecase"
 	subsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/subscriptions/usecase"
 	topBlogsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/topBlogs/usecase"
 
@@ -31,6 +32,7 @@ import (
 	categoryHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
 	commentHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/comment"
 	profileHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
+	searchBarHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/search_bar"
 	subsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/subscriptions"
 	topBlogsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/topBlogs"
 
@@ -103,6 +105,7 @@ func New(config *server.Config) (*Server, error) {
 	commentUsecase := commentUsecase.NewCommentUsecase(commentRepo, sessionRepo)
 	subsUsecase := subsUsecase.NewSubscriptionsUsecase(subsRepo, sessionRepo, userRepo)
 	appealUsecase := appealUsecase.NewAppealUsecase(appealRepo, sessionRepo, minioClient)
+	searchBarUsecase := searchBarUsecase.NewSearchBarUsecase(userRepo, articleRepo)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)
 	authHandler := authHandler.NewAuthHandler(authUsecase)
@@ -112,6 +115,7 @@ func New(config *server.Config) (*Server, error) {
 	commentHandler := commentHandler.NewCommentHandler(commentUsecase)
 	subsHandler := subsHandler.NewSubsHandler(subsUsecase)
 	appealHandler := appealHandler.NewAppealHandler(appealUsecase)
+	seacrhBarHandler := searchBarHandler.NewSearchBarHandler(searchBarUsecase)
 
 	mux := router.NewRouter(
 		articleHandler,
@@ -122,6 +126,7 @@ func New(config *server.Config) (*Server, error) {
 		commentHandler,
 		subsHandler,
 		appealHandler,
+		seacrhBarHandler,
 	)
 
 	handler := middleware.CORSMiddleware(mux)
