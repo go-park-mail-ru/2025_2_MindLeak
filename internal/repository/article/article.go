@@ -352,7 +352,6 @@ func (r *ArticleRepo) SearchArticles(ctx context.Context, queryText string) ([]m
 		FROM article
 		WHERE 
 			(title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%')
-			AND status = 'published'
 		LIMIT 20;
 		`
 
