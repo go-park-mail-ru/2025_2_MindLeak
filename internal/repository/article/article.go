@@ -25,6 +25,7 @@ type ArticleRepository interface {
 	DeleteArticle(ctx context.Context, id uuid.UUID) (bool, error)
 	UpdateArticle(ctx context.Context, article models.Article) (models.Article, error)
 	GetArticlesByTopic(ctx context.Context, topicTitle string, offset int) ([]models.Article, error)
+	SearchArticles(ctx context.Context, queryText string) ([]models.Article, error)
 }
 
 type ArticleRepo struct {
@@ -341,4 +342,50 @@ func (r *ArticleRepo) loadAuthor(ctx context.Context, a *models.Article) error {
 func (r *ArticleRepo) loadTopic(ctx context.Context, a *models.Article) error {
 	query := `SELECT title FROM topic WHERE topic_id = $1`
 	return r.db.QueryRowContext(ctx, query, a.TopicID).Scan(&a.Topic.Title)
+}
+
+func (r *ArticleRepo) SearchArticles(ctx context.Context, queryText string) ([]models.Article, error) {
+	query := `SELECT 
+			article_id, author_id, title, content, media_url,
+			topic_id, status, comments_count, reposts_count, views_count,
+			created_at, updated_at
+		FROM article
+		WHERE 
+			(title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%')
+			AND status = 'published'
+		LIMIT 20;
+		`
+
+	articles := make([]models.Article, 0)
+	rows, err := r.db.QueryContext(ctx, query, queryText)
+	if err != nil {
+		logger.Error(ctx, err.Error())
+		return nil, fmt.Errorf("search articles: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		a := models.Article{}
+		err = rows.Scan(
+			&a.ID,
+			&a.AuthorID,
+			&a.Title,
+			&a.Content,
+			&a.MediaURL,
+			&a.TopicID,
+			&a.Status,
+			&a.CommentsCount,
+			&a.RepostsCount,
+			&a.ViewsCount,
+			&a.CreatedAt,
+			&a.UpdatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("SearchArticles scan error: %w", err)
+		}
+
+		articles = append(articles, a)
+	}
+
+	return articles, nil
 }
