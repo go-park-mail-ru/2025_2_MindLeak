@@ -346,12 +346,16 @@ func (r *ArticleRepo) loadTopic(ctx context.Context, a *models.Article) error {
 
 func (r *ArticleRepo) SearchArticles(ctx context.Context, queryText string) ([]models.Article, error) {
 	query := `SELECT 
-			article_id, author_id, title, content, media_url,
-			topic_id, status, comments_count, reposts_count, views_count,
-			created_at, updated_at
-		FROM article
-		WHERE 
-			(title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%')
+			a.article_id, a.author_id, a.title, a.content, a.media_url,
+			a.topic_id, a.status, a.comments_count, a.reposts_count, a.views_count,
+			a.created_at, a.updated_at,
+			u.name AS author_name,
+			u.avatar AS author_avatar,
+			t.title AS topic_title
+		FROM article a
+		LEFT JOIN "user" u ON u.user_id = a.author_id
+		LEFT JOIN topic t ON t.topic_id = a.topic_id
+		WHERE (a.title ILIKE '%' || $1 || '%' OR a.content ILIKE '%' || $1 || '%')
 		LIMIT 20;
 		`
 	logger.Warn(ctx, "SearchArticles: queryText=%q", queryText)
@@ -378,6 +382,9 @@ func (r *ArticleRepo) SearchArticles(ctx context.Context, queryText string) ([]m
 			&a.ViewsCount,
 			&a.CreatedAt,
 			&a.UpdatedAt,
+			&a.AuthorName,
+			&a.AuthorAvatar,
+			&a.Topic.Title,
 		)
 
 		if err != nil {

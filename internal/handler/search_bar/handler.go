@@ -1,12 +1,14 @@
 package search_bar
 
 import (
+	"context"
 	"errors"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/search_bar/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/search_bar"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"net/http"
 	"strings"
 )
@@ -22,7 +24,7 @@ func NewSearchBarHandler(usecase search_bar.Usecase) *Handler {
 }
 
 func (h *Handler) handleError(err error) (int, string) {
-
+	logger.Error(context.Background(), "HANDLER ERROR: %v", err)
 	switch {
 	case errors.Is(err, user.ErrUserNotFound):
 		return http.StatusNotFound, "user not found"
