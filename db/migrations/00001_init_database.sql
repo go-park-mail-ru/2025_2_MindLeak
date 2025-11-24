@@ -42,9 +42,9 @@ CREATE TABLE article (
                          media_url TEXT,
                          topic_id INT NOT NULL REFERENCES topic(topic_id) ON DELETE NO ACTION,
                          status article_status NOT NULL DEFAULT 'draft',
-                         comments_count INT DEFAULT 0,
-                         reposts_count INT,
-                         views_count INT,
+                         comments_count INT NOT NULL DEFAULT 0,
+                         reposts_count INT NOT NULL DEFAULT 0,
+                         views_count INT NOT NULL DEFAULT 0,
                          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
