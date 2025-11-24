@@ -400,14 +400,31 @@ func (r *ArticleRepo) loadTopic(ctx context.Context, a *models.Article) error {
 
 func (r *ArticleRepo) SearchArticles(ctx context.Context, queryText string) ([]models.Article, error) {
 	query := `
-        SELECT 
-            article_id, author_id, title, content, media_url,
-            topic_id, status, comments_count, reposts_count, views_count,
-            created_at, updated_at
-        FROM article
-        WHERE 
-            (title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%')
-        LIMIT 20;
+		SELECT
+			a.article_id,
+			a.author_id,
+			a.title,
+			a.content,
+			a.media_url,
+			a.topic_id,
+			a.status,
+			a.comments_count,
+			a.reposts_count,
+			a.views_count,
+			a.created_at,
+			a.updated_at,
+			
+			t.title AS topic_title,
+			u.name AS author_name,
+			u.avatar AS author_avatar
+		
+		FROM article a
+		JOIN topic t ON a.topic_id = t.topic_id
+		JOIN "user" u ON a.author_id = u.user_id
+		
+		WHERE (a.title ILIKE '%' || $1 || '%' 
+			OR a.content ILIKE '%' || $1 || '%')
+		LIMIT 20;
     `
 
 	rows, err := r.db.QueryContext(ctx, query, queryText)
@@ -434,6 +451,9 @@ func (r *ArticleRepo) SearchArticles(ctx context.Context, queryText string) ([]m
 			&a.ViewsCount,
 			&a.CreatedAt,
 			&a.UpdatedAt,
+			&a.Topic.Title,
+			&a.AuthorName,
+			&a.AuthorAvatar,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("SearchArticles scan error: %w", err)
