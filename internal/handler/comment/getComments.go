@@ -62,7 +62,7 @@ func (h *Handler) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 			logger.Error(ctx, err.Error())
 			return
 		}
-		comments, err := h.Usecase.GetCommentsByArticle(ctx, authorId)
+		comments, err := h.Usecase.GetCommentsByAuthor(ctx, authorId)
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
@@ -103,7 +103,7 @@ func (h *Handler) GetCommentsHandler(w http.ResponseWriter, r *http.Request) {
 
 		authorId := session.UserId
 
-		comments, err := h.Usecase.GetCommentsByArticle(ctx, authorId)
+		comments, err := h.Usecase.GetCommentsByAuthor(ctx, authorId)
 		if err != nil {
 			code, msg := h.handleError(err)
 			json.WriteError(w, code, msg)
