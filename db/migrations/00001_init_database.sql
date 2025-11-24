@@ -42,7 +42,7 @@ CREATE TABLE article (
                          media_url TEXT,
                          topic_id INT NOT NULL REFERENCES topic(topic_id) ON DELETE NO ACTION,
                          status article_status NOT NULL DEFAULT 'draft',
-                         comments_count INT,
+                         comments_count INT DEFAULT 0,
                          reposts_count INT,
                          views_count INT,
                          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -88,6 +88,10 @@ CREATE TABLE subscription (
                               CHECK (follower_id <> followed_id)
 );
 
+
+-- ----------------------
+-- UPDATE TIMESTAMPS TRIGGERS
+-- ----------------------
 CREATE OR REPLACE FUNCTION update_updated_at()
     RETURNS TRIGGER AS $$
 BEGIN
@@ -111,18 +115,65 @@ CREATE TRIGGER trg_article_updated_at
 CREATE TRIGGER trg_comment_updated_at
     BEFORE UPDATE ON comment
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+
+-- ----------------------
+-- COMMENTS COUNTER TRIGGERS
+-- ----------------------
+
+-- increment after INSERT
+CREATE OR REPLACE FUNCTION inc_comments_count()
+    RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE article
+    SET comments_count = comments_count + 1
+    WHERE article_id = NEW.article_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_inc_comments
+    AFTER INSERT ON comment
+    FOR EACH ROW EXECUTE FUNCTION inc_comments_count();
+
+
+-- decrement after DELETE
+CREATE OR REPLACE FUNCTION dec_comments_count()
+    RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE article
+    SET comments_count = comments_count - 1
+    WHERE article_id = OLD.article_id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_dec_comments
+    AFTER DELETE ON comment
+    FOR EACH ROW EXECUTE FUNCTION dec_comments_count();
+
 -- +goose StatementEnd
+
+
+
 
 -- +goose Down
 -- +goose StatementBegin
 
--- Удаляем триггеры с CASCADE
+-- Remove comment count triggers
+DROP TRIGGER IF EXISTS trg_inc_comments ON comment CASCADE;
+DROP TRIGGER IF EXISTS trg_dec_comments ON comment CASCADE;
+
+DROP FUNCTION IF EXISTS inc_comments_count CASCADE;
+DROP FUNCTION IF EXISTS dec_comments_count CASCADE;
+
+-- Remove updated_at triggers
 DROP TRIGGER IF EXISTS trg_user_updated_at ON "user" CASCADE;
 DROP TRIGGER IF EXISTS trg_profile_updated_at ON profile CASCADE;
 DROP TRIGGER IF EXISTS trg_article_updated_at ON article CASCADE;
 DROP TRIGGER IF EXISTS trg_comment_updated_at ON comment CASCADE;
 
--- Теперь можно удалить таблицы
+-- Remove tables
 DROP TABLE IF EXISTS media CASCADE;
 DROP TABLE IF EXISTS topic CASCADE;
 DROP TABLE IF EXISTS article_like CASCADE;
@@ -132,15 +183,14 @@ DROP TABLE IF EXISTS profile CASCADE;
 DROP TABLE IF EXISTS subscription CASCADE;
 DROP TABLE IF EXISTS "user" CASCADE;
 
--- Удаляем типы
+-- Remove types
 DROP TYPE IF EXISTS media_type;
 DROP TYPE IF EXISTS article_status;
 
--- Удаляем функцию
+-- Remove update function
 DROP FUNCTION IF EXISTS update_updated_at CASCADE;
 
--- Удаляем расширение
+-- Remove pgcrypto extension
 DROP EXTENSION IF EXISTS "pgcrypto";
 
 -- +goose StatementEnd
-
