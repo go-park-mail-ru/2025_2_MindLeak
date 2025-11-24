@@ -354,6 +354,7 @@ func (r *ArticleRepo) SearchArticles(ctx context.Context, queryText string) ([]m
 			(title ILIKE '%' || $1 || '%' OR content ILIKE '%' || $1 || '%')
 		LIMIT 20;
 		`
+	logger.Warn(ctx, "SearchArticles: queryText=%q", queryText)
 
 	articles := make([]models.Article, 0)
 	rows, err := r.db.QueryContext(ctx, query, queryText)
