@@ -40,13 +40,25 @@ func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, tit
 	query := `
 		INSERT INTO article (author_id, title, content, topic_id, status)
 		VALUES ($1, $2, $3, $4, 'draft')
-		RETURNING article_id, author_id, title, content, topic_id, status, created_at, updated_at
+		RETURNING 
+		    article_id, author_id, title, content, topic_id, status,
+		    comments_count, reposts_count, views_count,
+		    created_at, updated_at
 	`
 
 	var a models.Article
 	err := r.db.QueryRowContext(ctx, query, authorID, title, content, topicID).Scan(
-		&a.ID, &a.AuthorID, &a.Title, &a.Content, &a.Topic.TopicId,
-		&a.Status, &a.CreatedAt, &a.UpdatedAt,
+		&a.ID,
+		&a.AuthorID,
+		&a.Title,
+		&a.Content,
+		&a.Topic.TopicId,
+		&a.Status,
+		&a.CommentsCount,
+		&a.RepostsCount,
+		&a.ViewsCount,
+		&a.CreatedAt,
+		&a.UpdatedAt,
 	)
 	if err != nil {
 		logger.Error(ctx, err.Error())
@@ -55,7 +67,6 @@ func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, tit
 
 	if err := r.loadTopic(ctx, &a); err != nil {
 		logger.Error(ctx, err.Error())
-
 		return models.Article{}, fmt.Errorf("load topic: %w", err)
 	}
 	if err := r.loadAuthor(ctx, &a); err != nil {
@@ -68,8 +79,10 @@ func (r *ArticleRepo) CreateArticle(ctx context.Context, authorID uuid.UUID, tit
 
 func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (models.Article, error) {
 	query := `
-		SELECT a.article_id, a.author_id, a.title, a.content, 
+		SELECT a.article_id, a.author_id, a.title, a.content,
+		       a.media_url,
 		       a.status, a.created_at, a.updated_at,
+		       a.comments_count, a.reposts_count, a.views_count,
 		       t.topic_id, t.title AS topic_title,
 		       u.name, u.avatar
 		FROM article a
@@ -79,11 +92,24 @@ func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (models.
 	`
 
 	var a models.Article
+	var mediaURL sql.NullString
+
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
-		&a.ID, &a.AuthorID, &a.Title, &a.Content,
-		&a.Status, &a.CreatedAt, &a.UpdatedAt,
-		&a.Topic.TopicId, &a.Topic.Title,
-		&a.AuthorName, &a.AuthorAvatar,
+		&a.ID,
+		&a.AuthorID,
+		&a.Title,
+		&a.Content,
+		&mediaURL,
+		&a.Status,
+		&a.CreatedAt,
+		&a.UpdatedAt,
+		&a.CommentsCount,
+		&a.RepostsCount,
+		&a.ViewsCount,
+		&a.Topic.TopicId,
+		&a.Topic.Title,
+		&a.AuthorName,
+		&a.AuthorAvatar,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		logger.Error(ctx, err.Error())
@@ -94,6 +120,12 @@ func (r *ArticleRepo) GetArticleById(ctx context.Context, id uuid.UUID) (models.
 		return models.Article{}, fmt.Errorf("get article by id: %w", err)
 	}
 
+	if mediaURL.Valid {
+		a.MediaURL = mediaURL.String
+	} else {
+		a.MediaURL = ""
+	}
+
 	return a, nil
 }
 
@@ -102,7 +134,8 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 		SELECT a.article_id, a.author_id, a.title, a.content, a.media_url,
 		       a.status, a.created_at, a.updated_at,
 		       t.topic_id, t.title AS topic_title,
-		       u.name, u.avatar
+		       u.name, u.avatar,
+		       a.comments_count, a.reposts_count, a.views_count
 		FROM article a
 		JOIN topic t ON a.topic_id = t.topic_id
 		JOIN "user" u ON a.author_id = u.user_id
@@ -123,10 +156,21 @@ func (r *ArticleRepo) GetArticlesByAuthorId(ctx context.Context, authorID uuid.U
 		var mediaURL sql.NullString
 
 		if err := rows.Scan(
-			&a.ID, &a.AuthorID, &a.Title, &a.Content, &mediaURL,
-			&a.Status, &a.CreatedAt, &a.UpdatedAt,
-			&a.Topic.TopicId, &a.Topic.Title,
-			&a.AuthorName, &a.AuthorAvatar,
+			&a.ID,
+			&a.AuthorID,
+			&a.Title,
+			&a.Content,
+			&mediaURL,
+			&a.Status,
+			&a.CreatedAt,
+			&a.UpdatedAt,
+			&a.Topic.TopicId,
+			&a.Topic.Title,
+			&a.AuthorName,
+			&a.AuthorAvatar,
+			&a.CommentsCount,
+			&a.RepostsCount,
+			&a.ViewsCount,
 		); err != nil {
 			logger.Error(ctx, err.Error())
 			return nil, err
@@ -150,7 +194,8 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 		SELECT a.article_id, a.author_id, a.title, a.content, a.media_url,
 		       a.status, a.created_at, a.updated_at,
 		       t.topic_id, t.title AS topic_title,
-		       u.name, u.avatar
+		       u.name, u.avatar,
+		       a.comments_count, a.reposts_count, a.views_count
 		FROM article a
 		JOIN topic t ON a.topic_id = t.topic_id
 		JOIN "user" u ON a.author_id = u.user_id
@@ -172,10 +217,21 @@ func (r *ArticleRepo) GetFeedArticles(ctx context.Context, feed models.Feed) ([]
 		var mediaURL sql.NullString
 
 		if err := rows.Scan(
-			&a.ID, &a.AuthorID, &a.Title, &a.Content, &mediaURL,
-			&a.Status, &a.CreatedAt, &a.UpdatedAt,
-			&a.Topic.TopicId, &a.Topic.Title,
-			&a.AuthorName, &a.AuthorAvatar,
+			&a.ID,
+			&a.AuthorID,
+			&a.Title,
+			&a.Content,
+			&mediaURL,
+			&a.Status,
+			&a.CreatedAt,
+			&a.UpdatedAt,
+			&a.Topic.TopicId,
+			&a.Topic.Title,
+			&a.AuthorName,
+			&a.AuthorAvatar,
+			&a.CommentsCount,
+			&a.RepostsCount,
+			&a.ViewsCount,
 		); err != nil {
 			logger.Error(ctx, err.Error())
 			return nil, err
@@ -196,7 +252,8 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 		SELECT a.article_id, a.author_id, a.title, a.content, a.media_url, 
 		       a.status, a.created_at, a.updated_at,
 		       t.topic_id, t.title AS topic_title,
-		       u.name, u.avatar
+		       u.name, u.avatar,
+		       a.comments_count, a.reposts_count, a.views_count
 		FROM article a
 		JOIN topic t ON a.topic_id = t.topic_id
 		JOIN "user" u ON a.author_id = u.user_id
@@ -218,10 +275,21 @@ func (r *ArticleRepo) GetArticlesByTopic(ctx context.Context, topicTitle string,
 		var mediaURL sql.NullString
 
 		if err := rows.Scan(
-			&a.ID, &a.AuthorID, &a.Title, &a.Content, &mediaURL,
-			&a.Status, &a.CreatedAt, &a.UpdatedAt,
-			&a.Topic.TopicId, &a.Topic.Title,
-			&a.AuthorName, &a.AuthorAvatar,
+			&a.ID,
+			&a.AuthorID,
+			&a.Title,
+			&a.Content,
+			&mediaURL,
+			&a.Status,
+			&a.CreatedAt,
+			&a.UpdatedAt,
+			&a.Topic.TopicId,
+			&a.Topic.Title,
+			&a.AuthorName,
+			&a.AuthorAvatar,
+			&a.CommentsCount,
+			&a.RepostsCount,
+			&a.ViewsCount,
 		); err != nil {
 			logger.Error(ctx, err.Error())
 			return nil, err
@@ -273,21 +341,25 @@ func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article)
 	`
 
 	var updated models.Article
-
-	var (
-		mediaURL                                sql.NullString
-		commentsCount, repostsCount, viewsCount sql.NullInt64
-	)
+	var mediaURL sql.NullString
 
 	err := r.db.QueryRowContext(ctx, query,
 		article.Title, article.Content, article.MediaURL, article.Status,
 		article.TopicID,
 		article.ID, article.AuthorID,
 	).Scan(
-		&updated.ID, &updated.AuthorID, &updated.Title, &updated.Content, &mediaURL,
-		&updated.TopicID, &updated.Status,
-		&commentsCount, &repostsCount, &viewsCount,
-		&updated.CreatedAt, &updated.UpdatedAt,
+		&updated.ID,
+		&updated.AuthorID,
+		&updated.Title,
+		&updated.Content,
+		&mediaURL,
+		&updated.TopicID,
+		&updated.Status,
+		&updated.CommentsCount,
+		&updated.RepostsCount,
+		&updated.ViewsCount,
+		&updated.CreatedAt,
+		&updated.UpdatedAt,
 	)
 
 	if errors.Is(err, sql.ErrNoRows) {
@@ -302,24 +374,6 @@ func (r *ArticleRepo) UpdateArticle(ctx context.Context, article models.Article)
 		updated.MediaURL = mediaURL.String
 	} else {
 		updated.MediaURL = ""
-	}
-
-	if commentsCount.Valid {
-		updated.CommentsCount = int(commentsCount.Int64)
-	} else {
-		updated.CommentsCount = 0
-	}
-
-	if repostsCount.Valid {
-		updated.RepostsCount = int(repostsCount.Int64)
-	} else {
-		updated.RepostsCount = 0
-	}
-
-	if viewsCount.Valid {
-		updated.ViewsCount = int(viewsCount.Int64)
-	} else {
-		updated.ViewsCount = 0
 	}
 
 	if err := r.loadTopic(ctx, &updated); err != nil {
