@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/postgres"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/config/redis"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/appeal"
+	repository "github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/chat"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/comment"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/subscriptions"
 
@@ -20,19 +21,21 @@ import (
 	articleUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/article/usecase"
 	authUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/auth/usecase"
 	categoryUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/categories/usecase"
+	usecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/chat"
 	commentUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/comment/usecase"
 	profileUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/profile/usecase"
 	subsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/subscriptions/usecase"
 	topBlogsUsecase "github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/topBlogs/usecase"
 
-	appealHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/appeal"
-	articleHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
-	authHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
-	categoryHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
-	commentHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/comment"
-	profileHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
-	subsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/subscriptions"
-	topBlogsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/topBlogs"
+	appealHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/appeal"
+	articleHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/article"
+	authHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/auth"
+	categoryHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/categories"
+	commentHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/comment"
+	profileHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/profile"
+	subsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/subscriptions"
+	topBlogsHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/topBlogs"
+	chatHandler "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/ws"
 
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
@@ -94,6 +97,7 @@ func New(config *server.Config) (*Server, error) {
 	subsRepo := subscriptions.NewPostgresSubscription(DB)
 	commentRepo := comment.NewPostgresComment(DB)
 	appealRepo := appeal.NewPostgresAppeal(DB)
+	chatRepo := repository.NewChatRepository(DB)
 
 	articleUsecase := articleUsecase.NewArticleUsecase(articleRepo, sessionRepo, minioClient)
 	profileUsecase := profileUsecase.NewProfileUsecase(sessionRepo, userRepo, profileRepo, minioClient)
@@ -103,6 +107,7 @@ func New(config *server.Config) (*Server, error) {
 	commentUsecase := commentUsecase.NewCommentUsecase(commentRepo, sessionRepo)
 	subsUsecase := subsUsecase.NewSubscriptionsUsecase(subsRepo, sessionRepo, userRepo)
 	appealUsecase := appealUsecase.NewAppealUsecase(appealRepo, sessionRepo, minioClient)
+	chatUC := usecase.NewChatUsecase(sessionRepo, chatRepo)
 
 	articleHandler := articleHandler.NewArticleHandler(articleUsecase)
 	authHandler := authHandler.NewAuthHandler(authUsecase)
@@ -112,6 +117,7 @@ func New(config *server.Config) (*Server, error) {
 	commentHandler := commentHandler.NewCommentHandler(commentUsecase)
 	subsHandler := subsHandler.NewSubsHandler(subsUsecase)
 	appealHandler := appealHandler.NewAppealHandler(appealUsecase)
+	chatWS := chatHandler.NewHandler(chatUC)
 
 	mux := router.NewRouter(
 		articleHandler,
@@ -122,6 +128,7 @@ func New(config *server.Config) (*Server, error) {
 		commentHandler,
 		subsHandler,
 		appealHandler,
+		chatWS,
 	)
 
 	handler := middleware.CORSMiddleware(mux)

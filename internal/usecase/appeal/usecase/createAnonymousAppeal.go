@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/appeal/dto"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/appeal/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
 	"github.com/google/uuid"
