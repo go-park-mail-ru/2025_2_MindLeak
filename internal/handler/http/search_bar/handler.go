@@ -3,14 +3,15 @@ package search_bar
 import (
 	"context"
 	"errors"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/search_bar/dto"
+	"net/http"
+	"strings"
+
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/search_bar/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/article"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/repository/user"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/search_bar"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
-	"net/http"
-	"strings"
 )
 
 type Handler struct {
