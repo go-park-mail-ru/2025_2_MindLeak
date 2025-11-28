@@ -96,5 +96,6 @@ func NewRouter(
 	router.HandleFunc("/chat/rooms", chatHandler.CreateRoom).Methods("POST")
 	router.HandleFunc("/chat/rooms/{room_id}/messages", chatHandler.GetMessages).Methods("GET")
 	router.HandleFunc("/chat/ws", chatHandler.Connect).Methods("GET")
+
 	return router
 }
