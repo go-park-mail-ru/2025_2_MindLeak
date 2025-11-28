@@ -88,10 +88,35 @@ CREATE TABLE subscription (
                               CHECK (follower_id <> followed_id)
 );
 
+CREATE TABLE chat_rooms (
+    room_id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name       TEXT,
+    is_group   BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE chat_room_members (
+    room_id    UUID REFERENCES chat_rooms(room_id) ON DELETE CASCADE,
+    user_id    UUID REFERENCES "user"(user_id) ON DELETE CASCADE,
+    joined_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (room_id, user_id)
+);
+
+CREATE TABLE chat_messages (
+    message_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    room_id    UUID NOT NULL REFERENCES chat_rooms(room_id) ON DELETE CASCADE,
+    user_id    UUID NOT NULL REFERENCES "user"(user_id),
+    text       TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    INDEX idx_room_created (room_id, created_at DESC)
+);
+
+
 
 -- ----------------------
 -- UPDATE TIMESTAMPS TRIGGERS
 -- ----------------------
+
 CREATE OR REPLACE FUNCTION update_updated_at()
     RETURNS TRIGGER AS $$
 BEGIN

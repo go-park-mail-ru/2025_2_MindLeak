@@ -1,16 +1,17 @@
 package router
 
 import (
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/appeal"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/article"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/auth"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/categories"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/comment"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/profile"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/search_bar"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/subscriptions"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/swagger"
-	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/topBlogs"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/appeal"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/article"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/auth"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/categories"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/comment"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/profile"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/search_bar"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/subscriptions"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/swagger"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/topBlogs"
+	chat "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/ws"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/middleware"
 	"github.com/gorilla/mux"
 )
@@ -25,6 +26,7 @@ func NewRouter(
 	subsHandler *subscriptions.Handler,
 	appealHandler *appeal.Handler,
 	seacrhBarHandler *search_bar.Handler,
+	chatHandler *chat.Handler,
 ) *mux.Router {
 	router := mux.NewRouter()
 
@@ -94,6 +96,11 @@ func NewRouter(
 	// Поиск
 	router.HandleFunc("/postssearch", seacrhBarHandler.SearchArticles).Methods("GET")
 	router.HandleFunc("/blogssearch", seacrhBarHandler.SearchUsers).Methods("GET")
+	// чаты
+	router.HandleFunc("/chat/rooms", chatHandler.GetRooms).Methods("GET")
+	router.HandleFunc("/chat/rooms", chatHandler.CreateRoom).Methods("POST")
+	router.HandleFunc("/chat/rooms/{room_id}/messages", chatHandler.GetMessages).Methods("GET")
+	router.HandleFunc("/chat/ws", chatHandler.Connect).Methods("GET")
 
 	return router
 }

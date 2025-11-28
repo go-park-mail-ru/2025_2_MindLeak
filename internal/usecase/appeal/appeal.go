@@ -4,7 +4,7 @@ import (
 	"context"
 	"mime/multipart"
 
-	dtoHand "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/appeal/dto"
+	dtoHand "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/appeal/dto"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/models"
 	"github.com/go-park-mail-ru/2025_2_MindLeak/internal/usecase/appeal/dto"
 	"github.com/google/uuid"

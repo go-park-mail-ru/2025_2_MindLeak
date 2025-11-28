@@ -1,0 +1,39 @@
+package comment
+
+import (
+	"net/http"
+
+	dto2 "github.com/go-park-mail-ru/2025_2_MindLeak/internal/handler/http/comment/dto"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/json"
+	"github.com/go-park-mail-ru/2025_2_MindLeak/pkg/logger"
+)
+
+func (h *Handler) CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	inputDto := dto2.CommentIODto{}
+
+	err := json.Read(r, &inputDto)
+
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		logger.Error(ctx, err.Error())
+		return
+	}
+
+	created, err := h.Usecase.AddComment(ctx, h.mapToDto(inputDto))
+
+	if err != nil {
+		code, msg := h.handleError(err)
+		json.WriteError(w, code, msg)
+		logger.Error(ctx, err.Error())
+		return
+	}
+
+	if err = json.Write(w, http.StatusOK, h.mapToIODto(created)); err != nil {
+		logger.Error(ctx, err.Error())
+		return
+	}
+
+}
