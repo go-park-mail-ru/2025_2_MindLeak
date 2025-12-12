@@ -77,10 +77,10 @@ func NewRouter(
 	router.HandleFunc("/delete/media", articleHandler.DeleteMedia).Methods("DELETE")
 
 	// Подписки
-	router.HandleFunc("subscribers", subsHandler.GetSubscribers).Methods("GET")
-	router.HandleFunc("subscriptions", subsHandler.GetSubscriptions).Methods("GET")
-	router.HandleFunc("unsubscribe/{id}", subsHandler.Unsubscribe).Methods("POST")
-	router.HandleFunc("subscribe/{id}", subsHandler.Subscribe).Methods("POST")
+	router.HandleFunc("/subscribers", subsHandler.GetSubscribers).Methods("GET")
+	router.HandleFunc("/subscriptions", subsHandler.GetSubscriptions).Methods("GET")
+	router.HandleFunc("/unsubscribe/{id}", subsHandler.Unsubscribe).Methods("POST")
+	router.HandleFunc("/subscribe/{id}", subsHandler.Subscribe).Methods("POST")
 
 	//  Техподдержка (хакатон)
 	router.HandleFunc("/appeal", appealHandler.CreateAppeal).Methods("POST")
