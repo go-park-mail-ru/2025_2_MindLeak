@@ -35,7 +35,7 @@ func (h *Handler) mapSubscriptionsToOutputDto(users []models.User) dto.Subscript
 	}
 
 	return dto.SubscriptionsOutputDto{
-		Subsccriptions: res,
+		Subscriptions: res,
 	}
 }
 
