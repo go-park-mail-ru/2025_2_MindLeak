@@ -59,14 +59,19 @@ func toOutputDTO(usecaseDto usecaseDTO.ReceivedFeedDTO) dto.FeedOutputDTO {
 	result := make([]dto.ArticleOutput, len(usecaseDto.Articles))
 	for i, a := range usecaseDto.Articles {
 		result[i] = dto.ArticleOutput{
-			ID:           a.ID,
-			AuthorID:     a.AuthorID,
-			Title:        a.Title,
-			Content:      a.Content,
-			MediaURL:     a.MediaURL,
-			Topic:        a.Topic,
-			AuthorName:   a.AuthorName,
-			AuthorAvatar: a.AuthorAvatar,
+			ID:            a.ID,
+			AuthorID:      a.AuthorID,
+			Title:         a.Title,
+			Content:       a.Content,
+			MediaURL:      a.MediaURL,
+			TopicID:       a.TopicID,
+			Status:        a.Status,
+			CommentsCount: a.CommentsCount,
+			RepostsCount:  a.RepostsCount,
+			ViewsCount:    a.ViewsCount,
+			Topic:         a.Topic,
+			AuthorName:    a.AuthorName,
+			AuthorAvatar:  a.AuthorAvatar,
 		}
 	}
 	return dto.FeedOutputDTO{Articles: result}
