@@ -17,9 +17,9 @@ type SubscriptionDto struct {
 }
 
 type SubscriptionsOutputDto struct {
-	Subsccriptions []SubscriptionDto `json:"subscriptions"`
+	Subscriptions []SubscriptionDto `json:"subscriptions"` //было 3 с опечатка ли?
 }
 
 type SubscribersOutputDto struct {
-	Subscribers []SubscriberDto `json:"subscriptions"`
+	Subscribers []SubscriberDto `json:"subscriptions"` // норм ли одинаковое название ...
 }
