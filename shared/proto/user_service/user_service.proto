@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+package auth.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "company/project/proto/auth/v1";
+
+enum Sex {
+  SEX_UNSPECIFIED = 0;
+  SEX_MALE        = 1;
+  SEX_FEMALE      = 2;
+  SEX_UNDEFINED   = 3;
+}
+
+message User {
+  string  id              = 1;
+  string  email           = 2;
+  string  name            = 3;
+  string  avatar_url      = 4;
+
+  string  phone           = 5;
+  string  country         = 6;
+  string  language        = 7;
+  Sex     sex             = 8;
+  string  date_of_birth   = 9;   // "2001-03-20"
+  int32   age             = 10;
+  string  description     = 11;
+  string  cover_url       = 12;
+
+  int64   subscribers     = 13;
+  int64   subscriptions   = 14;
+
+  google.protobuf.Timestamp created_at = 15;
+}
+
+
+message LoginRequest {
+  string email    = 1;
+  string password = 2;
+}
+
+message RegisterRequest {
+  string email    = 1;
+  string password = 2;
+  string name     = 3;
+}
+
+message AuthResponse {
+  string email    = 1;
+  string name     = 2;
+  string avatar = 3;
+}
+
+message LogoutRequest {}
+
+message LogoutResponse {
+  string message = 1;
+}
+
+message UpdateProfileRequest {
+  string id = 1;
+
+  string phone         = 2;
+  string country       = 3;
+  string language      = 4;
+  Sex    sex           = 5;
+  string date_of_birth = 6;
+  int32  age           = 7;
+  string description   = 8;
+  string password      = 9;
+  string cover_url     = 10;
+  string name          = 11;
+  string avatar_url    = 12;
+  string email         = 13;
+}
+
+message GetMyProfileRequest {}
+
+message ProfileResponse {
+  User user = 1;
+}
+
+
+service AuthService {
+  rpc Login(LoginRequest) returns (AuthResponse);
+  rpc Register(RegisterRequest) returns (AuthResponse);
+  rpc GetMyProfile(GetMyProfileRequest) returns (ProfileResponse);
+  rpc UpdateProfile(UpdateProfileRequest) returns (ProfileResponse);
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+}
+
+

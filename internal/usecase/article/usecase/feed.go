@@ -21,15 +21,20 @@ func toDTO(articles []models.Article) dto.ReceivedFeedDTO {
 	result := make([]models.Article, len(articles))
 	for i, a := range articles {
 		result[i] = models.Article{
-			ID:           a.ID,
-			AuthorID:     a.AuthorID,
-			Title:        a.Title,
-			MediaURL:     a.MediaURL,
-			Content:      a.Content,
-			CreatedAt:    a.CreatedAt,
-			Topic:        a.Topic,
-			AuthorName:   a.AuthorName,
-			AuthorAvatar: a.AuthorAvatar,
+			ID:            a.ID,
+			AuthorID:      a.AuthorID,
+			Title:         a.Title,
+			MediaURL:      a.MediaURL,
+			Content:       a.Content,
+			CreatedAt:     a.CreatedAt,
+			UpdatedAt:     a.UpdatedAt,
+			Topic:         a.Topic,
+			AuthorName:    a.AuthorName,
+			AuthorAvatar:  a.AuthorAvatar,
+			CommentsCount: a.CommentsCount,
+			RepostsCount:  a.RepostsCount,
+			ViewsCount:    a.ViewsCount,
+			Status:        a.Status,
 		}
 	}
 	return dto.ReceivedFeedDTO{Articles: result}

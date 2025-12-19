@@ -69,6 +69,17 @@ const (
 			(SELECT COUNT(*) FROM subscription WHERE followed_id = $1) AS subscribers,
 			(SELECT COUNT(*) FROM subscription WHERE follower_id = $1) AS subscriptions;
 	`
+	SearchUsersQuery = `SELECT 
+    user_id, email, name, avatar,
+    COUNT(DISTINCT s_followers.follower_id) AS subscribers,
+    COUNT(DISTINCT s_following.followed_id) AS subscriptions
+		FROM "user" u
+		LEFT JOIN subscription s_followers ON s_followers.followed_id = u.user_id
+		LEFT JOIN subscription s_following ON s_following.follower_id = u.user_id
+		WHERE name ILIKE '%' || $1 || '%'
+		GROUP BY u.user_id
+		LIMIT 20;
+		`
 )
 
 type UserRepository interface {
@@ -78,6 +89,7 @@ type UserRepository interface {
 	GetAllUsers(ctx context.Context) ([]models.User, error)
 	DeleteUser(ctx context.Context, id uuid.UUID) (bool, error)
 	UpdateUser(ctx context.Context, oldUser models.User) (models.User, error)
+	SearchUsers(ctx context.Context, queryText string) ([]models.User, error)
 }
 
 type PostgresUser struct {
@@ -210,4 +222,24 @@ func (p *PostgresUser) UpdateUser(ctx context.Context, user models.User) (models
 	}
 
 	return updated, nil
+}
+
+func (p *PostgresUser) SearchUsers(ctx context.Context, queryText string) ([]models.User, error) {
+	users := make([]models.User, 0)
+	rows, err := p.db.QueryContext(ctx, SearchUsersQuery, queryText)
+	if err != nil {
+		logger.Error(ctx, "Error searching users: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.Id, &user.Email, &user.Name, &user.Avatar, &user.Subscribers, &user.Subscriptions)
+		if err != nil {
+			logger.Error(ctx, "Error searching users: %v", err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
 }

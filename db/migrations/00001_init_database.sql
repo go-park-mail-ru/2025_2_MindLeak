@@ -42,9 +42,9 @@ CREATE TABLE article (
                          media_url TEXT,
                          topic_id INT NOT NULL REFERENCES topic(topic_id) ON DELETE NO ACTION,
                          status article_status NOT NULL DEFAULT 'draft',
-                         comments_count INT,
-                         reposts_count INT,
-                         views_count INT,
+                         comments_count INT NOT NULL DEFAULT 0,
+                         reposts_count INT NOT NULL DEFAULT 0,
+                         views_count INT NOT NULL DEFAULT 0,
                          created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
                          updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -88,6 +88,35 @@ CREATE TABLE subscription (
                               CHECK (follower_id <> followed_id)
 );
 
+CREATE TABLE chat_rooms (
+    room_id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name       TEXT,
+    is_group   BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE chat_room_members (
+    room_id    UUID REFERENCES chat_rooms(room_id) ON DELETE CASCADE,
+    user_id    UUID REFERENCES "user"(user_id) ON DELETE CASCADE,
+    joined_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (room_id, user_id)
+);
+
+CREATE TABLE chat_messages (
+    message_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    room_id    UUID NOT NULL REFERENCES chat_rooms(room_id) ON DELETE CASCADE,
+    user_id    UUID NOT NULL REFERENCES "user"(user_id),
+    text       TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    INDEX idx_room_created (room_id, created_at DESC)
+);
+
+
+
+-- ----------------------
+-- UPDATE TIMESTAMPS TRIGGERS
+-- ----------------------
+
 CREATE OR REPLACE FUNCTION update_updated_at()
     RETURNS TRIGGER AS $$
 BEGIN
@@ -111,18 +140,65 @@ CREATE TRIGGER trg_article_updated_at
 CREATE TRIGGER trg_comment_updated_at
     BEFORE UPDATE ON comment
     FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+
+-- ----------------------
+-- COMMENTS COUNTER TRIGGERS
+-- ----------------------
+
+-- increment after INSERT
+CREATE OR REPLACE FUNCTION inc_comments_count()
+    RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE article
+    SET comments_count = comments_count + 1
+    WHERE article_id = NEW.article_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_inc_comments
+    AFTER INSERT ON comment
+    FOR EACH ROW EXECUTE FUNCTION inc_comments_count();
+
+
+-- decrement after DELETE
+CREATE OR REPLACE FUNCTION dec_comments_count()
+    RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE article
+    SET comments_count = comments_count - 1
+    WHERE article_id = OLD.article_id;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_dec_comments
+    AFTER DELETE ON comment
+    FOR EACH ROW EXECUTE FUNCTION dec_comments_count();
+
 -- +goose StatementEnd
+
+
+
 
 -- +goose Down
 -- +goose StatementBegin
 
--- Удаляем триггеры с CASCADE
+-- Remove comment count triggers
+DROP TRIGGER IF EXISTS trg_inc_comments ON comment CASCADE;
+DROP TRIGGER IF EXISTS trg_dec_comments ON comment CASCADE;
+
+DROP FUNCTION IF EXISTS inc_comments_count CASCADE;
+DROP FUNCTION IF EXISTS dec_comments_count CASCADE;
+
+-- Remove updated_at triggers
 DROP TRIGGER IF EXISTS trg_user_updated_at ON "user" CASCADE;
 DROP TRIGGER IF EXISTS trg_profile_updated_at ON profile CASCADE;
 DROP TRIGGER IF EXISTS trg_article_updated_at ON article CASCADE;
 DROP TRIGGER IF EXISTS trg_comment_updated_at ON comment CASCADE;
 
--- Теперь можно удалить таблицы
+-- Remove tables
 DROP TABLE IF EXISTS media CASCADE;
 DROP TABLE IF EXISTS topic CASCADE;
 DROP TABLE IF EXISTS article_like CASCADE;
@@ -132,15 +208,14 @@ DROP TABLE IF EXISTS profile CASCADE;
 DROP TABLE IF EXISTS subscription CASCADE;
 DROP TABLE IF EXISTS "user" CASCADE;
 
--- Удаляем типы
+-- Remove types
 DROP TYPE IF EXISTS media_type;
 DROP TYPE IF EXISTS article_status;
 
--- Удаляем функцию
+-- Remove update function
 DROP FUNCTION IF EXISTS update_updated_at CASCADE;
 
--- Удаляем расширение
+-- Remove pgcrypto extension
 DROP EXTENSION IF EXISTS "pgcrypto";
 
 -- +goose StatementEnd
-

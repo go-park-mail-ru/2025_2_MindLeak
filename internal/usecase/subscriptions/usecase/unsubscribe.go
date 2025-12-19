@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+
 	"github.com/google/uuid"
 )
 
@@ -24,7 +25,7 @@ func (u *Usecase) Unsubscribe(ctx context.Context, targetID uuid.UUID, sessionID
 	if err != nil {
 		return false, err
 	}
-	if exists {
+	if !exists {
 		return false, ErrNotSubscribed
 	}
 
