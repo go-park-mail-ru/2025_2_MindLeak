@@ -73,8 +73,8 @@ func NewRouter(
 	router.HandleFunc("/posts/{id}", articleHandler.UpdateArticle).Methods("PUT")
 	router.HandleFunc("/posts", articleHandler.GetArticlesByAuthorId).Methods("GET")
 	router.HandleFunc("/post", articleHandler.GetArticle).Methods("GET")
-	router.HandleFunc("/uploads/media", articleHandler.UploadMedia).Methods("POST")
-	router.HandleFunc("/delete/media", articleHandler.DeleteMedia).Methods("DELETE")
+	router.HandleFunc("/uploads/media/{id}", articleHandler.UploadMedia).Methods("POST")
+	router.HandleFunc("/delete/media/{id}", articleHandler.DeleteMedia).Methods("DELETE")
 
 	// Подписки
 	router.HandleFunc("/subscribers", subsHandler.GetSubscribers).Methods("GET")
